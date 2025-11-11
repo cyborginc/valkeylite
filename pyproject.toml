@@ -1,0 +1,121 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "valkey-server"
+version = "8.0.1"
+description = "Embedded Valkey server for Python - perfect for testing and development"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Nicolas Dupont"}
+]
+maintainers = [
+    {name = "Nicolas Dupont"}
+]
+keywords = [
+    "valkey",
+    "redis",
+    "server",
+    "testing",
+    "development",
+    "embedded",
+    "database",
+    "cache"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Database",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+client = [
+    "valkey>=6.0",
+]
+pytest = [
+    "pytest>=7.0",
+    "valkey>=6.0",
+]
+test = [
+    "pytest>=7.0",
+    "pytest-timeout",
+    "valkey>=6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/dupontcyborg/valkey-server-py"
+Repository = "https://github.com/dupontcyborg/valkey-server-py"
+Issues = "https://github.com/dupontcyborg/valkey-server-py/issues"
+Changelog = "https://github.com/dupontcyborg/valkey-server-py/blob/main/CHANGELOG.md"
+
+[project.scripts]
+valkey-server = "valkey_server.__main__:main"
+
+[project.entry-points.pytest11]
+valkey = "valkey_server.pytest_plugin"
+
+[tool.setuptools]
+packages = ["valkey_server"]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+valkey_server = ["_binaries/**/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["valkey_server"]

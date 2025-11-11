@@ -160,3 +160,20 @@ cython_debug/
 
 # Claude
 .claude/
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Valkey build artifacts
+valkey.tar.gz
+valkey-*/
+
+# Valkey runtime files
+*.pid
+dump.rdb
+appendonly.aof
+*.rdb
+*.aof
