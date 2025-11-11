@@ -3,7 +3,7 @@
 import argparse
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from .server import ValkeyServer
 
@@ -58,7 +58,7 @@ def main() -> int:
     args = parse_args()
 
     # Build config from arguments
-    config: Dict[str, Any] = {
+    config: dict[str, Any] = {
         "loglevel": args.loglevel,
     }
 
@@ -75,17 +75,18 @@ def main() -> int:
 
         server.start()
 
-        print(f"✓ Valkey server started successfully!")
+        print("✓ Valkey server started successfully!")
         print(f"  Host: {server.host}")
         print(f"  Port: {server.port}")
         print(f"  Connection URL: {server.connection_url}")
         print(f"  Data directory: {server.data_dir}")
-        print(f"\nPress Ctrl+C to stop the server...")
+        print("\nPress Ctrl+C to stop the server...")
 
         # Keep running until interrupted
         try:
             while server.is_running():
                 import time
+
                 time.sleep(1)
         except KeyboardInterrupt:
             print("\n\nReceived interrupt, shutting down...")

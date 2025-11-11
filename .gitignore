@@ -177,3 +177,5 @@ dump.rdb
 appendonly.aof
 *.rdb
 *.aof
+
+_binaries/

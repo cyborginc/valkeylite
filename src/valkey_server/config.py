@@ -1,13 +1,12 @@
 """Configuration management for Valkey server."""
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from .exceptions import ValkeyConfigurationError
 
-
 # Default configuration optimized for testing and development
-DEFAULT_CONFIG: Dict[str, Any] = {
+DEFAULT_CONFIG: dict[str, Any] = {
     "bind": "127.0.0.1",
     "protected-mode": "yes",
     "daemonize": "no",
@@ -22,7 +21,7 @@ def generate_config_file(
     config_path: Path,
     port: int,
     data_dir: Path,
-    config_overrides: Dict[str, Any],
+    config_overrides: dict[str, Any],
 ) -> None:
     """
     Generate a Valkey configuration file.
@@ -60,7 +59,7 @@ def generate_config_file(
         elif isinstance(value, bool):
             # Convert Python bool to Valkey yes/no
             lines.append(f"{key} {'yes' if value else 'no'}")
-        elif isinstance(value, (list, tuple)):
+        elif isinstance(value, list | tuple):
             # Multiple values (e.g., save 900 1 300 10)
             values_str = " ".join(str(v) for v in value)
             lines.append(f"{key} {values_str}")
@@ -72,7 +71,7 @@ def generate_config_file(
     config_path.write_text(config_content, encoding="utf-8")
 
 
-def validate_config(config: Dict[str, Any]) -> None:
+def validate_config(config: dict[str, Any]) -> None:
     """
     Validate configuration options.
 

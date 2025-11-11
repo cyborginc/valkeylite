@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ._binary import get_binary_path
 from .config import generate_config_file, validate_config
@@ -33,10 +33,10 @@ class ValkeyServer:
 
     def __init__(
         self,
-        port: Optional[int] = None,
+        port: int | None = None,
         host: str = "127.0.0.1",
-        data_dir: Optional[Path] = None,
-        config: Optional[Dict[str, Any]] = None,
+        data_dir: Path | None = None,
+        config: dict[str, Any] | None = None,
         persist: bool = False,
         **config_overrides: Any,
     ) -> None:
@@ -57,7 +57,7 @@ class ValkeyServer:
             OSError: If port is already in use.
         """
         self.host = host
-        self._port: Optional[int] = None  # Will be set in start()
+        self._port: int | None = None  # Will be set in start()
         self._desired_port = port  # User-requested port
         self.persist = persist
 
@@ -69,7 +69,7 @@ class ValkeyServer:
         validate_config(self._config)
 
         # Setup directories
-        self._temp_data_dir: Optional[Path] = None
+        self._temp_data_dir: Path | None = None
         if data_dir is None:
             self._temp_data_dir = Path(tempfile.mkdtemp(prefix="valkey-"))
             self.data_dir = self._temp_data_dir
@@ -77,8 +77,8 @@ class ValkeyServer:
             self.data_dir = Path(data_dir)
             self.data_dir.mkdir(parents=True, exist_ok=True)
 
-        self._temp_config_file: Optional[Path] = None
-        self._process: Optional[subprocess.Popen] = None
+        self._temp_config_file: Path | None = None
+        self._process: subprocess.Popen | None = None
         self._binary_path = get_binary_path()
 
         # Register cleanup handler
@@ -99,7 +99,7 @@ class ValkeyServer:
         return f"redis://{self.host}:{self.port}"
 
     @property
-    def connection_kwargs(self) -> Dict[str, Any]:
+    def connection_kwargs(self) -> dict[str, Any]:
         """Get connection parameters as a dictionary for valkey-py client."""
         return {
             "host": self.host,
@@ -241,7 +241,7 @@ class ValkeyServer:
                 sock.settimeout(1.0)
                 sock.connect((self.host, self._port))
             return True
-        except (socket.error, OSError):
+        except OSError:
             return False
 
     def wait_until_ready(self, timeout: float = 10.0) -> None:
@@ -270,9 +270,7 @@ class ValkeyServer:
 
             time.sleep(0.1)
 
-        raise ValkeyServerTimeoutError(
-            f"Server did not become ready within {timeout} seconds"
-        )
+        raise ValkeyServerTimeoutError(f"Server did not become ready within {timeout} seconds")
 
     def _cleanup(self) -> None:
         """Clean up resources (called automatically at exit)."""

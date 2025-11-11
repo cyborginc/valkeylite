@@ -1,7 +1,6 @@
 """Utility to find available network ports."""
 
 import socket
-from typing import Optional
 
 
 def find_free_port(host: str = "127.0.0.1", start_port: int = 16379) -> int:
@@ -23,8 +22,7 @@ def find_free_port(host: str = "127.0.0.1", start_port: int = 16379) -> int:
             return port
 
     raise OSError(
-        f"Could not find an available port on {host} "
-        f"in range {start_port}-{start_port + 99}"
+        f"Could not find an available port on {host} in range {start_port}-{start_port + 99}"
     )
 
 
@@ -47,7 +45,7 @@ def is_port_available(host: str, port: int) -> bool:
             return False
 
 
-def get_port_or_find_free(port: Optional[int], host: str = "127.0.0.1") -> int:
+def get_port_or_find_free(port: int | None, host: str = "127.0.0.1") -> int:
     """
     Return the specified port if available, otherwise find a free one.
 

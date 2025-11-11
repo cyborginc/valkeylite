@@ -1,10 +1,8 @@
 """Custom build script to download and compile Valkey."""
 
-import os
 import platform
 import shutil
 import subprocess
-import sys
 import tarfile
 import urllib.request
 from pathlib import Path
@@ -42,10 +40,7 @@ class BuildValkeyCommand(build_py):
         tarball_path = build_dir / f"valkey-{VALKEY_VERSION}.tar.gz"
         if not tarball_path.exists():
             self.announce(f"Downloading Valkey {VALKEY_VERSION}...", level=3)
-            url = (
-                f"https://github.com/valkey-io/valkey/archive/"
-                f"refs/tags/{VALKEY_VERSION}.tar.gz"
-            )
+            url = f"https://github.com/valkey-io/valkey/archive/refs/tags/{VALKEY_VERSION}.tar.gz"
             urllib.request.urlretrieve(url, tarball_path)
             self.announce("Download complete", level=3)
         else:
@@ -99,14 +94,11 @@ class BuildValkeyCommand(build_py):
                 machine = "arm64"
         else:
             raise RuntimeError(
-                f"Unsupported architecture: {machine}. "
-                f"Supported: x86_64, aarch64, arm64"
+                f"Unsupported architecture: {machine}. Supported: x86_64, aarch64, arm64"
             )
 
         if system not in ("linux", "darwin"):
-            raise RuntimeError(
-                f"Unsupported operating system: {system}. " f"Supported: Linux, macOS"
-            )
+            raise RuntimeError(f"Unsupported operating system: {system}. Supported: Linux, macOS")
 
         # Copy binary to package
         binary_src = valkey_src_dir / "src" / "valkey-server"
@@ -131,9 +123,7 @@ class BuildValkeyCommand(build_py):
 
         # Get binary size
         size_mb = binary_dst.stat().st_size / (1024 * 1024)
-        self.announce(
-            f"Valkey binary ready: {binary_dst} ({size_mb:.1f} MB)", level=3
-        )
+        self.announce(f"Valkey binary ready: {binary_dst} ({size_mb:.1f} MB)", level=3)
 
 
 # Run setup

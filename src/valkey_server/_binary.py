@@ -2,12 +2,11 @@
 
 import platform
 from pathlib import Path
-from typing import Tuple
 
 from .exceptions import ValkeyBinaryNotFoundError
 
 
-def get_platform_info() -> Tuple[str, str]:
+def get_platform_info() -> tuple[str, str]:
     """
     Get normalized platform and architecture information.
 
@@ -25,8 +24,7 @@ def get_platform_info() -> Tuple[str, str]:
     # Normalize system name
     if system not in ("linux", "darwin"):
         raise ValkeyBinaryNotFoundError(
-            f"Unsupported operating system: {system}. "
-            f"valkey-server supports Linux and macOS only."
+            f"Unsupported operating system: {system}. valkey-server supports Linux and macOS only."
         )
 
     # Normalize architecture name
@@ -42,8 +40,7 @@ def get_platform_info() -> Tuple[str, str]:
             machine = "arm64"
     else:
         raise ValkeyBinaryNotFoundError(
-            f"Unsupported architecture: {machine}. "
-            f"valkey-server supports x86_64 and ARM64 only."
+            f"Unsupported architecture: {machine}. valkey-server supports x86_64 and ARM64 only."
         )
 
     return system, machine
@@ -76,8 +73,6 @@ def get_binary_path() -> Path:
 
     # Check if binary is executable
     if not binary_path.is_file():
-        raise ValkeyBinaryNotFoundError(
-            f"Valkey binary exists but is not a file: {binary_path}"
-        )
+        raise ValkeyBinaryNotFoundError(f"Valkey binary exists but is not a file: {binary_path}")
 
     return binary_path

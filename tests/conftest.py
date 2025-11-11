@@ -1,7 +1,5 @@
 """Pytest configuration and fixtures for valkey-server tests."""
 
-import pytest
-
 
 def pytest_configure(config):
     """Configure pytest markers."""

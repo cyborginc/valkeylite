@@ -1,5 +1,7 @@
 """Pytest plugin for valkey-server fixtures."""
 
+import importlib.util
+
 import pytest
 
 from .server import ValkeyServer
@@ -35,9 +37,7 @@ def valkey_client(valkey_server):
             valkey_client.set('key', 'value')
             assert valkey_client.get('key') == b'value'
     """
-    try:
-        import valkey
-    except ImportError:
+    if importlib.util.find_spec("valkey") is None:
         pytest.skip("valkey-py not installed (pip install valkey-server[pytest])")
 
     return valkey_server.client()
