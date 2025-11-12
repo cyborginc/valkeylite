@@ -24,7 +24,7 @@ def get_platform_info() -> tuple[str, str]:
     # Normalize system name
     if system not in ("linux", "darwin"):
         raise ValkeyBinaryNotFoundError(
-            f"Unsupported operating system: {system}. valkey-server supports Linux and macOS only."
+            f"Unsupported operating system: {system}. valkeylite supports Linux and macOS only."
         )
 
     # Normalize architecture name
@@ -40,7 +40,7 @@ def get_platform_info() -> tuple[str, str]:
             machine = "arm64"
     else:
         raise ValkeyBinaryNotFoundError(
-            f"Unsupported architecture: {machine}. valkey-server supports x86_64 and ARM64 only."
+            f"Unsupported architecture: {machine}. valkeylite supports x86_64 and ARM64 only."
         )
 
     return system, machine
@@ -51,7 +51,7 @@ def get_binary_path() -> Path:
     Get the path to the platform-specific Valkey server binary.
 
     Returns:
-        Path to the valkey-server executable
+        Path to the valkeylite executable
 
     Raises:
         ValkeyBinaryNotFoundError: If binary cannot be found or platform is unsupported

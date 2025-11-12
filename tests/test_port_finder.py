@@ -1,6 +1,6 @@
 """Test port finding utilities."""
 
-from valkey_server.port_finder import find_free_port, get_port_or_find_free, is_port_available
+from valkeylite.port_finder import find_free_port, get_port_or_find_free, is_port_available
 
 
 def test_find_free_port():

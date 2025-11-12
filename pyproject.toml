@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "valkey-server"
+name = "valkeylite"
 version = "9.0.0"
 description = "Embedded Valkey server for Python - like redislite but with Valkey!"
 readme = "README.md"
@@ -43,36 +43,33 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 requires-python = ">=3.10"
-dependencies = []
-
-[project.optional-dependencies]
-client = [
+dependencies = [
     "valkey>=6.0",
 ]
+
+[project.optional-dependencies]
 test = [
     "pytest>=7.0",
     "pytest-timeout",
-    "valkey>=6.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/cyborginc/valkey-server-py"
-Repository = "https://github.com/cyborginc/valkey-server-py"
-Issues = "https://github.com/cyborginc/valkey-server-py/issues"
-Changelog = "https://github.com/cyborginc/valkey-server-py/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/cyborginc/valkeylite"
+Repository = "https://github.com/cyborginc/valkeylite"
+Issues = "https://github.com/cyborginc/valkeylite/issues"
 
 [project.scripts]
-valkey-server = "valkey_server.__main__:main"
+valkeylite = "valkeylite.__main__:main"
 
 [project.entry-points.pytest11]
-valkey = "valkey_server.pytest_plugin"
+valkey = "valkeylite.pytest_plugin"
 
 [tool.setuptools]
-packages = ["valkey_server"]
+packages = ["valkeylite"]
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
-valkey_server = ["_binaries/**/*"]
+valkeylite = ["_binaries/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -116,4 +113,4 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["valkey_server"]
+known-first-party = ["valkeylite"]

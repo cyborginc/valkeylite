@@ -1,4 +1,4 @@
-"""Pytest configuration and fixtures for valkey-server tests."""
+"""Pytest configuration and fixtures for valkeylite tests."""
 
 
 def pytest_configure(config):

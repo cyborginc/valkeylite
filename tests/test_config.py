@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from valkey_server.config import DEFAULT_CONFIG, generate_config_file, validate_config
-from valkey_server.exceptions import ValkeyConfigurationError
+from valkeylite.config import DEFAULT_CONFIG, generate_config_file, validate_config
+from valkeylite.exceptions import ValkeyConfigurationError
 
 
 def test_default_config():

@@ -1,4 +1,4 @@
-"""CLI entry point for valkey-server."""
+"""CLI entry point for valkeylite."""
 
 import argparse
 import sys
@@ -11,7 +11,7 @@ from .server import ValkeyServer
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
-        prog="valkey-server",
+        prog="valkeylite",
         description="Run an embedded Valkey server for development and testing",
     )
 

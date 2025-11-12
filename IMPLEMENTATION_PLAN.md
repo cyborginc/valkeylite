@@ -1,4 +1,4 @@
-# Valkey-Server Python Implementation Plan
+# valkeylite Python Implementation Plan
 
 ## Project Specifications
 
@@ -11,7 +11,7 @@
 
 **Build System:** setuptools + custom build hook (calls make directly)
 
-**Package Name:** `valkey-server`
+**Package Name:** `valkeylite`
 
 **License:** MIT
 
@@ -48,7 +48,7 @@ r.set('key', 'value')
 
 **Our approach:** Composable (server-only with optional client helper)
 ```python
-from valkey_server import ValkeyServer
+from valkeylite import ValkeyServer
 
 # Core: bring your own client
 with ValkeyServer() as server:
@@ -57,7 +57,7 @@ with ValkeyServer() as server:
 
 # Optional: convenience wrapper
 with ValkeyServer() as server:
-    client = server.client()  # Requires: pip install valkey-server[client]
+    client = server.client()  # Requires: pip install valkeylite[client]
 ```
 
 **Benefits:**
@@ -87,7 +87,7 @@ with ValkeyServer() as server:
 
 ### 1.1 Repository Structure
 ```
-valkey-server-py/
+valkeylite/
 ├── .github/
 │   ├── workflows/
 │   │   ├── check-valkey-release.yml    # Daily Valkey version check
@@ -96,7 +96,7 @@ valkey-server-py/
 │   │   └── release.yml                 # Tag trigger: build + publish
 │   └── dependabot.yml
 ├── src/
-│   └── valkey_server/
+│   └── valkeylite/
 │       ├── __init__.py                 # ValkeyServer class export
 │       ├── __main__.py                 # CLI entry point
 │       ├── server.py                   # Main ValkeyServer class
@@ -148,7 +148,7 @@ test = ["pytest >= 7.0", "pytest-timeout", "valkey >= 6.0"]
 **Goals:**
 1. Download Valkey source tarball at build time
 2. Extract and compile using Valkey's native Makefile
-3. Copy `valkey-server` binary to `src/valkey_server/_binaries/{platform}-{arch}/`
+3. Copy `valkeylite` binary to `src/valkeylite/_binaries/{platform}-{arch}/`
 4. Strip symbols to reduce binary size
 5. Set executable permissions
 
@@ -182,7 +182,7 @@ class BuildValkeyCommand(build_py):
         # Compile with make
         valkey_dir = Path(f"build/valkey-{VALKEY_VERSION}")
         subprocess.run(
-            ["make", "-j$(nproc)", "valkey-server"],
+            ["make", "-j$(nproc)", "valkeylite"],
             cwd=valkey_dir,
             check=True
         )
@@ -194,11 +194,11 @@ class BuildValkeyCommand(build_py):
             machine = "aarch64" if system == "linux" else "arm64"
 
         # Copy binary to package
-        target_dir = Path(f"src/valkey_server/_binaries/{system}-{machine}")
+        target_dir = Path(f"src/valkeylite/_binaries/{system}-{machine}")
         target_dir.mkdir(parents=True, exist_ok=True)
 
-        binary_src = valkey_dir / "src" / "valkey-server"
-        binary_dst = target_dir / "valkey-server"
+        binary_src = valkey_dir / "src" / "valkeylite"
+        binary_dst = target_dir / "valkeylite"
         shutil.copy2(binary_src, binary_dst)
 
         # Strip symbols
@@ -281,7 +281,7 @@ class ValkeyServer:
         """
         Create valkey-py client connected to this server.
 
-        Requires: pip install valkey-server[client]
+        Requires: pip install valkeylite[client]
 
         Args:
             **kwargs: Additional kwargs passed to valkey.Valkey()
@@ -292,7 +292,7 @@ class ValkeyServer:
 
     # Internal methods
     def _find_binary(self) -> Path:
-        """Locate platform-specific valkey-server binary."""
+        """Locate platform-specific valkeylite binary."""
 
     def _generate_config(self) -> Path:
         """Generate temp config file."""
@@ -340,7 +340,7 @@ def generate_config_file(
 ```python
 def get_binary_path() -> Path:
     """
-    Find platform-specific valkey-server binary.
+    Find platform-specific valkeylite binary.
 
     Returns bundled binary based on:
     - platform.system() -> linux, darwin
@@ -355,14 +355,14 @@ def get_binary_name() -> str:
 ```
 
 **Binary locations:**
-- `valkey_server/_binaries/linux-x86_64/valkey-server`
-- `valkey_server/_binaries/linux-aarch64/valkey-server`
-- `valkey_server/_binaries/darwin-x86_64/valkey-server`
-- `valkey_server/_binaries/darwin-arm64/valkey-server`
+- `valkeylite/_binaries/linux-x86_64/valkeylite`
+- `valkeylite/_binaries/linux-aarch64/valkeylite`
+- `valkeylite/_binaries/darwin-x86_64/valkeylite`
+- `valkeylite/_binaries/darwin-arm64/valkeylite`
 
 ### 2.4 Optional Client Wrapper (`client.py`)
 
-**Requires:** `pip install valkey-server[client]`
+**Requires:** `pip install valkeylite[client]`
 
 **Implementation in ValkeyServer:**
 ```python
@@ -375,7 +375,7 @@ class ValkeyServer:
         except ImportError:
             raise ImportError(
                 "valkey-py required for client() method. "
-                "Install with: pip install valkey-server[client]"
+                "Install with: pip install valkeylite[client]"
             ) from None
 
         return valkey.Valkey(
@@ -409,48 +409,48 @@ with ValkeyServer() as server:
 
 ### 2.5 Pytest Plugin (`pytest_plugin.py`)
 
-**Requires:** `pip install valkey-server[test]`
+**Requires:** `pip install valkeylite[test]`
 
 **Auto-discovery:** Register in pyproject.toml:
 ```toml
 [project.entry-points.pytest11]
-valkey = "valkey_server.pytest_plugin"
+valkey = "valkeylite.pytest_plugin"
 ```
 
 **Fixtures provided:**
 ```python
 # pytest_plugin.py
 import pytest
-from valkey_server import ValkeyServer
+from valkeylite import ValkeyServer
 
 @pytest.fixture
-def valkey_server():
+def valkeylite():
     """Provide ValkeyServer instance for a test."""
     with ValkeyServer() as server:
         yield server
 
 @pytest.fixture
-def valkey_client(valkey_server):
+def valkey_client(valkeylite):
     """Provide connected valkey-py client."""
     try:
         import valkey
     except ImportError:
         pytest.skip("valkey-py not installed")
 
-    return valkey_server.client()
+    return valkeylite.client()
 
 @pytest.fixture
-def valkey_url(valkey_server):
+def valkey_url(valkeylite):
     """Provide connection URL string."""
-    return valkey_server.connection_url
+    return valkeylite.connection_url
 ```
 
 **Usage in tests:**
 ```python
-def test_with_server(valkey_server):
+def test_with_server(valkeylite):
     """Test with server instance, bring your own client."""
     import valkey
-    client = valkey.Valkey(host=valkey_server.host, port=valkey_server.port)
+    client = valkey.Valkey(host=valkeylite.host, port=valkeylite.port)
     client.set('key', 'value')
     assert client.get('key') == b'value'
 
@@ -465,19 +465,19 @@ def test_with_client(valkey_client):
 **Phase 2: Minimal CLI (can expand later)**
 ```bash
 # Run in foreground (for quick testing)
-python -m valkey_server
+python -m valkeylite
 
 # With options
-python -m valkey_server --port 6380 --loglevel debug
+python -m valkeylite --port 6380 --loglevel debug
 ```
 
 **Later expansion:**
 ```bash
 # Daemonized service mode
-python -m valkey_server start [--config valkey.conf]
-python -m valkey_server stop
-python -m valkey_server status
-python -m valkey_server restart
+python -m valkeylite start [--config valkey.conf]
+python -m valkeylite stop
+python -m valkeylite status
+python -m valkeylite restart
 ```
 
 Use `argparse` initially, can switch to `click` if CLI grows complex.
@@ -715,8 +715,8 @@ def test_cli_custom_port():
 
 **test_pytest_plugin.py:**
 ```python
-def test_valkey_server_fixture(valkey_server):
-    """Test the valkey_server fixture."""
+def test_valkeylite_fixture(valkeylite):
+    """Test the valkeylite fixture."""
 
 def test_valkey_client_fixture(valkey_client):
     """Test the valkey_client fixture."""
@@ -741,12 +741,12 @@ def test_valkey_url_fixture(valkey_url):
 
 ### 5.1 README.md Structure
 ```markdown
-# valkey-server
+# valkeylite
 
 Install and run Valkey directly from Python.
 
 ## Installation
-`pip install valkey-server`
+`pip install valkeylite`
 
 ## Quick Start
 [Context manager example]
@@ -815,8 +815,8 @@ Install and run Valkey directly from Python.
 10. GitHub release created automatically
 
 ### 6.3 Post-Release
-- Verify on PyPI: https://pypi.org/project/valkey-server/
-- Test install: `pip install valkey-server=={version}`
+- Verify on PyPI: https://pypi.org/project/valkeylite/
+- Test install: `pip install valkeylite=={version}`
 - Update documentation if needed
 
 ---
@@ -879,7 +879,7 @@ Install and run Valkey directly from Python.
 **Problem:** Each wheel is 3-5MB
 
 **Solution:**
-- Strip debug symbols: `strip valkey-server`
+- Strip debug symbols: `strip valkeylite`
 - Compile with `-Os` (optimize size)
 - Consider UPX compression (risky, can trigger antivirus)
 - Accept the size (it's worth it for convenience)
@@ -927,7 +927,7 @@ Install and run Valkey directly from Python.
 ## Success Criteria
 
 **MVP (Minimum Viable Product):**
-- Install with `pip install valkey-server`
+- Install with `pip install valkeylite`
 - Works on Linux x86_64 and macOS arm64 (priority platforms)
 - Context manager API functional
 - Tests pass in CI
@@ -956,11 +956,11 @@ Install and run Valkey directly from Python.
 
 ### Core Package (No Dependencies)
 ```bash
-pip install valkey-server
+pip install valkeylite
 ```
 
 ```python
-from valkey_server import ValkeyServer
+from valkeylite import ValkeyServer
 
 # Bring your own client
 with ValkeyServer() as server:
@@ -970,11 +970,11 @@ with ValkeyServer() as server:
 
 ### With Client Wrapper
 ```bash
-pip install valkey-server[client]
+pip install valkeylite[client]
 ```
 
 ```python
-from valkey_server import ValkeyServer
+from valkeylite import ValkeyServer
 
 with ValkeyServer() as server:
     client = server.client()  # Returns valkey.Valkey instance
@@ -983,7 +983,7 @@ with ValkeyServer() as server:
 
 ### Development/Testing (All Features)
 ```bash
-pip install valkey-server[test]  # Includes client, pytest, testing tools
+pip install valkeylite[test]  # Includes client, pytest, testing tools
 ```
 
 ```python
@@ -1006,20 +1006,20 @@ r.set('key', 'value')
 assert r.get('key') == b'value'
 ```
 
-**Equivalent with valkey-server:**
+**Equivalent with valkeylite:**
 ```python
-from valkey_server import ValkeyServer
+from valkeylite import ValkeyServer
 
 with ValkeyServer() as server:
     r = server.client()  # Returns valkey.Valkey instance
     r.set('key', 'value')
     assert r.get('key') == b'value'
 ```
-*Requires: `pip install valkey-server[client]`*
+*Requires: `pip install valkeylite[client]`*
 
 **Or with explicit client choice:**
 ```python
-from valkey_server import ValkeyServer
+from valkeylite import ValkeyServer
 import valkey
 
 with ValkeyServer() as server:
@@ -1030,7 +1030,7 @@ with ValkeyServer() as server:
 
 **Or even redis-py for compatibility:**
 ```python
-from valkey_server import ValkeyServer
+from valkeylite import ValkeyServer
 import redis
 
 with ValkeyServer() as server:

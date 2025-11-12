@@ -120,7 +120,7 @@ class BuildValkeyCommand(build_py):
             f"-j{cpu_count}",
             "BUILD_TLS=no",
             "MALLOC=libc",
-            "valkey-server",
+            "valkeylite",
         ]
 
         # Add LDFLAGS for static linking on Linux
@@ -167,10 +167,10 @@ class BuildValkeyCommand(build_py):
             raise RuntimeError(f"Unsupported operating system: {system}. Supported: Linux, macOS")
 
         # Copy binary to package
-        binary_src = valkey_src_dir / "src" / "valkey-server"
-        target_dir = Path("src") / "valkey_server" / "_binaries" / f"{system}-{machine}"
+        binary_src = valkey_src_dir / "src" / "valkeylite"
+        target_dir = Path("src") / "valkeylite" / "_binaries" / f"{system}-{machine}"
         target_dir.mkdir(parents=True, exist_ok=True)
-        binary_dst = target_dir / "valkey-server"
+        binary_dst = target_dir / "valkeylite"
 
         self.announce(f"Copying binary to {binary_dst}...", level=3)
         shutil.copy2(binary_src, binary_dst)

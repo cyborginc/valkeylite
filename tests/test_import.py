@@ -3,21 +3,28 @@
 
 def test_import_main_module():
     """Test that the main module can be imported."""
-    import valkey_server
+    import valkeylite
 
-    assert valkey_server.__version__ == "9.0.0"
+    assert valkeylite.__version__ == "9.0.0"
 
 
 def test_import_server_class():
     """Test that ValkeyServer can be imported."""
-    from valkey_server import ValkeyServer
+    from valkeylite import ValkeyServer
 
     assert ValkeyServer is not None
 
 
+def test_import_client_class():
+    """Test that Valkey client wrapper can be imported."""
+    from valkeylite import Valkey
+
+    assert Valkey is not None
+
+
 def test_import_exceptions():
     """Test that exceptions can be imported."""
-    from valkey_server import (
+    from valkeylite import (
         ValkeyBinaryNotFoundError,
         ValkeyConfigurationError,
         ValkeyServerAlreadyStartedError,
@@ -37,9 +44,10 @@ def test_import_exceptions():
 
 def test_all_exports():
     """Test that __all__ contains expected exports."""
-    from valkey_server import __all__
+    from valkeylite import __all__
 
     expected = {
+        "Valkey",
         "ValkeyServer",
         "ValkeyServerError",
         "ValkeyServerNotStartedError",

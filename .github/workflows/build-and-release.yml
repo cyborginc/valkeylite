@@ -236,14 +236,14 @@ jobs:
         with:
           name: Release ${{ steps.version.outputs.VERSION }}
           body: |
-            ## Valkey-Server ${{ steps.version.outputs.VERSION }}
+            ## valkeylite ${{ steps.version.outputs.VERSION }}
 
             Bundled Valkey version: ${{ steps.version.outputs.VERSION }}
 
             ### Installation
 
             ```bash
-            pip install valkey-server==${{ steps.version.outputs.VERSION }}
+            pip install valkeylite==${{ steps.version.outputs.VERSION }}
             ```
 
             ### Changes

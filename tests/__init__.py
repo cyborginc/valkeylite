@@ -1,1 +1,1 @@
-"""Tests for valkey-server."""
+"""Tests for valkeylite."""

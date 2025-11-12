@@ -1,8 +1,8 @@
-"""Custom exceptions for valkey-server."""
+"""Custom exceptions for valkeylite."""
 
 
 class ValkeyServerError(Exception):
-    """Base exception for all valkey-server errors."""
+    """Base exception for all valkeylite errors."""
 
     pass
 

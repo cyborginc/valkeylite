@@ -188,8 +188,8 @@ def update_files(
             if not dry_run:
                 setup_path.write_text(new_setup_content)
 
-    # Update src/valkey_server/__init__.py
-    init_path = Path("src/valkey_server/__init__.py")
+    # Update src/valkeylite/__init__.py
+    init_path = Path("src/valkeylite/__init__.py")
     init_content = init_path.read_text()
 
     old_init_match = re.search(r'__version__ = "([^"]+)"', init_content)

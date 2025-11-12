@@ -110,7 +110,7 @@ class ValkeyServer:
         """
         Create a valkey-py client connected to this server.
 
-        Requires: pip install valkey-server[client]
+        Requires: pip install valkeylite[client]
 
         Args:
             **kwargs: Additional arguments passed to valkey.Valkey()
@@ -133,7 +133,7 @@ class ValkeyServer:
         except ImportError as e:
             raise ImportError(
                 "valkey-py is required for the client() method. "
-                "Install with: pip install valkey-server[client]"
+                "Install with: pip install valkeylite[client]"
             ) from e
 
         return valkey.Valkey(host=self.host, port=self.port, **kwargs)

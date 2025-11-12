@@ -8,25 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial release of valkey-server
+- Initial release of valkeylite
 - Embedded Valkey 9.0.0 server for Python
 - Support for Linux (x86_64, aarch64) and macOS (x86_64, arm64)
 - Python 3.10-3.13 support
-- Context manager API for easy server lifecycle management
-- Optional valkey-py client wrapper (install with [client])
+- **Two APIs:**
+  - Simple `Valkey` class - redislite-compatible, server auto-managed
+  - Advanced `ValkeyServer` class - explicit server control
+- valkey-py client included as core dependency
 - Pytest fixtures (install with [test])
-- CLI interface for running servers from command line
+- CLI interface (`valkeylite` command)
 - Automatic port assignment
 - Temporary data directory with automatic cleanup
+- Persistent data support via `dbfilename` parameter
 - Configuration management with safe defaults
 - Comprehensive API documentation
 
 ### Features
-- Zero external dependencies for core functionality
+- Drop-in replacement for redislite (one-line code change)
+- Dual API: Simple client wrapper + advanced server control
 - ARM64 support for modern Apple Silicon and AWS Graviton
 - Latest Valkey 9.0.0 server (not old Redis 6.2 like redislite)
-- Server-only design with optional client integration
 - Safe localhost-only defaults
 - Automatic binary resolution for current platform
+- Platform-specific wheels (4 wheels, not 16)
+- Static linking attempted for maximum portability
 
-[Unreleased]: https://github.com/cyborginc/valkey-server-py/compare/v9.0.0...HEAD
+[Unreleased]: https://github.com/cyborginc/valkeylite/compare/v9.0.0...HEAD
