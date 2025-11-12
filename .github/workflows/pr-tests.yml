@@ -1,0 +1,85 @@
+name: PR Tests
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff linter
+        run: ruff check .
+
+      - name: Run ruff formatter check
+        run: ruff format --check .
+
+  quick-test:
+    name: Quick Build & Test (Linux x86_64)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Install Python build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build pytest auditwheel
+
+      - name: Run unit tests (without server)
+        run: pytest tests/test_import.py tests/test_config.py tests/test_port_finder.py -v
+
+      - name: Build wheel
+        run: python -m build --wheel
+        timeout-minutes: 10
+
+      - name: Check wheel with auditwheel
+        run: |
+          auditwheel show dist/*.whl || echo "Wheel check failed"
+        continue-on-error: true
+
+      - name: Test wheel in clean environment
+        run: |
+          # Create fresh virtualenv
+          python -m venv test-env
+          source test-env/bin/activate
+
+          # Install wheel
+          pip install dist/*.whl
+
+          # Run integration test
+          python test_wheel.py
+
+          # Cleanup
+          deactivate
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-test-wheel
+          path: dist/*.whl
+          retention-days: 7
