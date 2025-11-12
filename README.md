@@ -2,21 +2,20 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/valkey-server.svg)](https://pypi.org/project/valkey-server/)
 [![Python versions](https://img.shields.io/pypi/pyversions/valkey-server.svg)](https://pypi.org/project/valkey-server/)
-[![License](https://img.shields.io/pypi/l/valkey-server.svg)](https://github.com/nicolaskruchten/valkey-server-py/blob/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/valkey-server.svg)](https://github.com/dupontcyborg/valkey-server-py/blob/main/LICENSE)
 
-**Install and run Valkey directly from Python** - perfect for testing and development.
+**Install and run Valkey directly from Python**
 
 `valkey-server` is a Python package that bundles the [Valkey](https://valkey.io/) server (the open-source continuation of Redis) as a library. It provides an embedded Valkey server that can be started and stopped from Python code, eliminating the need for external Valkey installations or Docker containers during development and testing.
+
+It's like [`redislite`](https://github.com/yahoo/redislite) but for Valkey.
 
 ## Features
 
 - 🚀 **Zero external dependencies** - No need to install Valkey separately
 - 🔧 **Simple API** - Start/stop Valkey with a context manager
 - 🧪 **Perfect for testing** - Isolated instances with auto-cleanup
-- 🏗️ **Modern platforms** - ARM64 support for Apple Silicon & AWS Graviton
-- 🐍 **Modern Python** - Python 3.10-3.13 support
 - ⚡ **Latest Valkey** - Currently bundles Valkey 8.0.1
-- 🎯 **Pytest fixtures** - Built-in pytest integration
 - 🔓 **Open source** - MIT license, bundles BSD-3-Clause Valkey
 
 ## Supported Platforms
@@ -45,21 +44,13 @@ pip install valkey-server[client]
 
 Includes [valkey-py](https://github.com/valkey-io/valkey-py) client for convenience.
 
-### With Pytest Fixtures
-
-```bash
-pip install valkey-server[pytest]
-```
-
-Includes pytest fixtures for testing.
-
-### All Features
+### For Testing/Development
 
 ```bash
 pip install valkey-server[test]
 ```
 
-Includes all optional dependencies.
+Includes all optional dependencies for testing.
 
 ## Quick Start
 
@@ -95,7 +86,7 @@ with ValkeyServer() as server:
 ### Pytest Integration
 
 ```python
-# Automatically available with valkey-server[pytest]
+# Automatically available with valkey-server[test]
 
 def test_with_server(valkey_server):
     """Use the server fixture."""
@@ -229,7 +220,7 @@ class ValkeyServer:
 ### Pytest Fixtures
 
 ```python
-# Available with pip install valkey-server[pytest]
+# Available with pip install valkey-server[test]
 
 @pytest.fixture
 def valkey_server() -> ValkeyServer:
@@ -244,113 +235,11 @@ def valkey_url(valkey_server) -> str:
     """Provides connection URL string."""
 ```
 
-## Why valkey-server?
-
-### vs. Redislite
-
-| Feature | valkey-server | redislite |
-|---------|--------------|-----------|
-| Server Version | **Valkey 8.0** | Redis 6.2 (2021) |
-| ARM64 macOS | ✅ Yes | ❌ No |
-| ARM64 Linux | ✅ Yes | ❌ No |
-| License | MIT + BSD-3 (Valkey) | Valkey License |
-| Last Updated | **Active** | Dec 2023 |
-| Python | 3.10-3.13 | 3.8-3.12 |
-| Design | Server-only, client optional | Monolithic wrapper |
-
-### vs. Docker
-
-**Use valkey-server when:**
-- ✅ You want instant setup without Docker
-- ✅ Running tests in CI/CD
-- ✅ Developing locally without containers
-- ✅ Need lightweight test fixtures
-
-**Use Docker when:**
-- ✅ Production deployments
-- ✅ Need exact production parity
-- ✅ Running clusters
-- ✅ Complex multi-service setups
-
-## Use Cases
-
-✅ **Perfect for:**
-- Unit and integration testing
-- Local development
-- CI/CD pipelines
-- Temporary data processing
-- Learning and experimentation
-
-❌ **Not for:**
-- Production deployments (use Docker or system packages)
-- High-performance requirements (use dedicated Valkey installation)
-- Clusters or replication (use proper Valkey deployment)
-
-## Migration from redislite
-
-```python
-# Before (redislite)
-import redislite
-r = redislite.Redis()
-r.set('key', 'value')
-
-# After (valkey-server)
-from valkey_server import ValkeyServer
-
-with ValkeyServer() as server:
-    r = server.client()
-    r.set('key', 'value')
-```
-
-## Security Considerations
-
-**Default configuration is secure for local development:**
-- ✅ Binds to `127.0.0.1` (localhost only)
-- ✅ Protected mode enabled
-- ❌ No authentication (add with `config={'requirepass': 'secret'}`)
-
-**For production or non-local use:**
-- Configure authentication (`requirepass`)
-- Use TLS if exposing over network
-- Consider firewall rules
-- Use proper Valkey deployment tools
-
-## Troubleshooting
-
-### Build Errors
-
-If you encounter build errors during installation:
-
-```bash
-# Ensure you have build tools
-# On Ubuntu/Debian:
-sudo apt-get install build-essential
-
-# On macOS:
-xcode-select --install
-```
-
-### Port Already in Use
-
-```python
-# Let valkey-server auto-assign a port
-with ValkeyServer(port=None) as server:  # None = auto
-    print(f"Using port: {server.port}")
-```
-
-### Binary Not Found
-
-If you get `ValkeyBinaryNotFoundError`, your platform may be unsupported or the installation was incomplete. Reinstall:
-
-```bash
-pip install --force-reinstall --no-cache-dir valkey-server
-```
-
 ## Development
 
 ```bash
 # Clone repository
-git clone https://github.com/nicolaskruchten/valkey-server-py.git
+git clone https://github.com/dupontcyborg/valkey-server-py.git
 cd valkey-server-py
 
 # Install in development mode
@@ -374,19 +263,7 @@ MIT License - see [LICENSE](LICENSE) file
 
 Valkey is licensed under BSD 3-Clause License
 
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md)
-
-## Links
-
-- **PyPI**: https://pypi.org/project/valkey-server/
-- **GitHub**: https://github.com/nicolaskruchten/valkey-server-py
-- **Valkey**: https://valkey.io/
-- **valkey-py**: https://github.com/valkey-io/valkey-py
-
 ## Acknowledgments
 
 - Built on [Valkey](https://valkey.io/), the open-source continuation of Redis
 - Inspired by [redislite](https://github.com/yahoo/redislite)
-- Thanks to the Valkey and Python communities

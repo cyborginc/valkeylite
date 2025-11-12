@@ -48,10 +48,6 @@ dependencies = []
 client = [
     "valkey>=6.0",
 ]
-pytest = [
-    "pytest>=7.0",
-    "valkey>=6.0",
-]
 test = [
     "pytest>=7.0",
     "pytest-timeout",

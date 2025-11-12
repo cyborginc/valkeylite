@@ -30,7 +30,7 @@ def valkey_client(valkey_server):
     """
     Provide a connected valkey-py client.
 
-    Requires valkey-py to be installed (pip install valkey-server[pytest]).
+    Requires valkey-py to be installed (pip install valkey-server[test]).
 
     Example:
         def test_my_feature(valkey_client):
@@ -38,7 +38,7 @@ def valkey_client(valkey_server):
             assert valkey_client.get('key') == b'value'
     """
     if importlib.util.find_spec("valkey") is None:
-        pytest.skip("valkey-py not installed (pip install valkey-server[pytest])")
+        pytest.skip("valkey-py not installed (pip install valkey-server[test])")
 
     return valkey_server.client()
 

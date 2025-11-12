@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python 3.10-3.13 support
 - Context manager API for easy server lifecycle management
 - Optional valkey-py client wrapper (install with [client])
-- Pytest fixtures (install with [pytest])
+- Pytest fixtures (install with [test])
 - CLI interface for running servers from command line
 - Automatic port assignment
 - Temporary data directory with automatic cleanup

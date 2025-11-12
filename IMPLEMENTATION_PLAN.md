@@ -409,7 +409,7 @@ with ValkeyServer() as server:
 
 ### 2.5 Pytest Plugin (`pytest_plugin.py`)
 
-**Requires:** `pip install valkey-server[pytest]`
+**Requires:** `pip install valkey-server[test]`
 
 **Auto-discovery:** Register in pyproject.toml:
 ```toml
@@ -981,9 +981,9 @@ with ValkeyServer() as server:
     client.set('key', 'value')
 ```
 
-### With Pytest Fixtures
+### Development/Testing (All Features)
 ```bash
-pip install valkey-server[pytest]
+pip install valkey-server[test]  # Includes client, pytest, testing tools
 ```
 
 ```python
@@ -991,11 +991,6 @@ pip install valkey-server[pytest]
 def test_something(valkey_client):
     valkey_client.set('key', 'value')
     assert valkey_client.get('key') == b'value'
-```
-
-### Development/Testing (All Features)
-```bash
-pip install valkey-server[test]  # Includes client, pytest, testing tools
 ```
 
 ---
