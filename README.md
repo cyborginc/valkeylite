@@ -16,7 +16,7 @@ It's like [`redislite`](https://github.com/yahoo/redislite) but with Valkey!
 - 🚀 **Zero external dependencies** - No need to install Valkey separately
 - 🔧 **Simple API** - Start/stop Valkey with a context manager
 - 🧪 **Perfect for testing** - Isolated instances with auto-cleanup
-- ⚡ **Latest Valkey** - Currently bundles Valkey 8.0.1
+- ⚡ **Latest Valkey** - Currently bundles Valkey 9.0.0
 - 🔓 **Open source** - MIT license, bundles BSD-3-Clause Valkey
 
 ## Supported Platforms

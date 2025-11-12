@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "valkey-server"
-version = "8.0.1"
-description = "Embedded Valkey server for Python - redislite but with Valkey!"
+version = "9.0.0"
+description = "Embedded Valkey server for Python - like redislite but with Valkey!"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [

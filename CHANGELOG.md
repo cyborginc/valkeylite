@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial release of valkey-server
-- Embedded Valkey 8.0.1 server for Python
+- Embedded Valkey 9.0.0 server for Python
 - Support for Linux (x86_64, aarch64) and macOS (x86_64, arm64)
 - Python 3.10-3.13 support
 - Context manager API for easy server lifecycle management
@@ -24,9 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Features
 - Zero external dependencies for core functionality
 - ARM64 support for modern Apple Silicon and AWS Graviton
-- Latest Valkey 8.0.1 server (not old Redis 6.2 like redislite)
+- Latest Valkey 9.0.0 server (not old Redis 6.2 like redislite)
 - Server-only design with optional client integration
 - Safe localhost-only defaults
 - Automatic binary resolution for current platform
 
-[Unreleased]: https://github.com/cyborginc/valkey-server-py/compare/v8.0.1...HEAD
+[Unreleased]: https://github.com/cyborginc/valkey-server-py/compare/v9.0.0...HEAD

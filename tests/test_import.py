@@ -5,7 +5,7 @@ def test_import_main_module():
     """Test that the main module can be imported."""
     import valkey_server
 
-    assert valkey_server.__version__ == "8.0.1"
+    assert valkey_server.__version__ == "9.0.0"
 
 
 def test_import_server_class():
