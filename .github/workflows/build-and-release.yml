@@ -29,12 +29,12 @@ jobs:
 
           # macOS Intel
           - platform: "macOS Intel"
-            os: macos-13
+            os: macos-15
             arch: x86_64
 
           # macOS Apple Silicon
           - platform: "macOS ARM64"
-            os: macos-14
+            os: macos-15
             arch: arm64
 
     steps:
@@ -90,10 +90,16 @@ jobs:
           ls -lh dist/
           python -m zipfile -l dist/*.whl | head -30
 
+      - name: Get wheel filename
+        id: wheel
+        run: |
+          WHEEL_NAME=$(basename dist/*.whl)
+          echo "name=${WHEEL_NAME}" >> $GITHUB_OUTPUT
+
       - name: Upload wheel
         uses: actions/upload-artifact@v4
         with:
-          name: wheel-${{ matrix.arch }}
+          name: ${{ steps.wheel.outputs.name }}
           path: dist/*.whl
           retention-days: 90
 
@@ -117,12 +123,12 @@ jobs:
             python-versions: ["3.10", "3.11", "3.12", "3.13"]
 
           - platform: "macOS Intel"
-            os: macos-13
+            os: macos-15
             arch: x86_64
             python-versions: ["3.10", "3.11", "3.12", "3.13"]
 
           - platform: "macOS ARM64"
-            os: macos-14
+            os: macos-15
             arch: arm64
             python-versions: ["3.10", "3.11", "3.12", "3.13"]
 
@@ -133,8 +139,9 @@ jobs:
       - name: Download wheel
         uses: actions/download-artifact@v4
         with:
-          name: wheel-${{ matrix.arch }}
+          pattern: "*${{ matrix.arch }}*.whl"
           path: dist/
+          merge-multiple: true
 
       - name: Test wheel with Python ${{ join(matrix.python-versions, ', ') }}
         run: |
@@ -198,6 +205,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [build-wheels, test-wheels, build-sdist]
     runs-on: ubuntu-latest
+    environment: prod # Requires manual approval
 
     steps:
       - name: Checkout code
