@@ -5,14 +5,15 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "valkey-server"
 version = "8.0.1"
-description = "Embedded Valkey server for Python - perfect for testing and development"
+description = "Embedded Valkey server for Python - redislite but with Valkey!"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
+    {name = "Cyborg Inc."},
     {name = "Nicolas Dupont"}
 ]
 maintainers = [
-    {name = "Nicolas Dupont"}
+    {name = "Cyborg Inc."}
 ]
 keywords = [
     "valkey",
@@ -55,10 +56,10 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/dupontcyborg/valkey-server-py"
-Repository = "https://github.com/dupontcyborg/valkey-server-py"
-Issues = "https://github.com/dupontcyborg/valkey-server-py/issues"
-Changelog = "https://github.com/dupontcyborg/valkey-server-py/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/cyborginc/valkey-server-py"
+Repository = "https://github.com/cyborginc/valkey-server-py"
+Issues = "https://github.com/cyborginc/valkey-server-py/issues"
+Changelog = "https://github.com/cyborginc/valkey-server-py/blob/main/CHANGELOG.md"
 
 [project.scripts]
 valkey-server = "valkey_server.__main__:main"

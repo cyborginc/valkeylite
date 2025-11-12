@@ -29,4 +29,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Safe localhost-only defaults
 - Automatic binary resolution for current platform
 
-[Unreleased]: https://github.com/dupontcyborg/valkey-server-py/compare/v8.0.1...HEAD
+[Unreleased]: https://github.com/cyborginc/valkey-server-py/compare/v8.0.1...HEAD

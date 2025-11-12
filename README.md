@@ -2,13 +2,14 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/valkey-server.svg)](https://pypi.org/project/valkey-server/)
 [![Python versions](https://img.shields.io/pypi/pyversions/valkey-server.svg)](https://pypi.org/project/valkey-server/)
-[![License](https://img.shields.io/pypi/l/valkey-server.svg)](https://github.com/dupontcyborg/valkey-server-py/blob/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/valkey-server.svg)](https://github.com/cyborginc/valkey-server-py/blob/main/LICENSE)
+[![Sponsored by Cyborg Inc.](https://img.shields.io/badge/Sponsored%20by-Cyborg%20Inc.-blue)](https://www.cyborg.co)
 
 **Install and run Valkey directly from Python**
 
 `valkey-server` is a Python package that bundles the [Valkey](https://valkey.io/) server (the open-source continuation of Redis) as a library. It provides an embedded Valkey server that can be started and stopped from Python code, eliminating the need for external Valkey installations or Docker containers during development and testing.
 
-It's like [`redislite`](https://github.com/yahoo/redislite) but for Valkey.
+It's like [`redislite`](https://github.com/yahoo/redislite) but with Valkey!
 
 ## Features
 
@@ -239,7 +240,7 @@ def valkey_url(valkey_server) -> str:
 
 ```bash
 # Clone repository
-git clone https://github.com/dupontcyborg/valkey-server-py.git
+git clone https://github.com/cyborginc/valkey-server-py.git
 cd valkey-server-py
 
 # Install in development mode
@@ -264,6 +265,8 @@ MIT License - see [LICENSE](LICENSE) file
 Valkey is licensed under BSD 3-Clause License
 
 ## Acknowledgments
+
+This project is sponsored and maintained by [Cyborg Inc.](https://www.cyborg.co)
 
 - Built on [Valkey](https://valkey.io/), the open-source continuation of Redis
 - Inspired by [redislite](https://github.com/yahoo/redislite)
