@@ -50,7 +50,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install build pytest auditwheel
 
-      - name: Run unit tests (without server)
+      - name: Install package in editable mode
+        run: pip install -e .
+
+      - name: Run unit tests
         run: pytest tests/test_import.py tests/test_config.py tests/test_port_finder.py -v
 
       - name: Build wheel
