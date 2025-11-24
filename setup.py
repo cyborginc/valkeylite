@@ -91,7 +91,7 @@ class BuildValkeyCommand(build_py):
         if not valkey_src_dir.exists():
             self.announce("Extracting Valkey source...", level=3)
             with tarfile.open(tarball_path, "r:gz") as tar:
-                tar.extractall(build_dir)
+                tar.extractall(build_dir, filter="data")
             self.announce("Extraction complete", level=3)
         else:
             self.announce("Using cached Valkey source", level=3)

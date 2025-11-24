@@ -7,7 +7,8 @@ name = "valkeylite"
 version = "9.0.0"
 description = "Embedded Valkey server for Python - like redislite but with Valkey!"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     {name = "Cyborg Inc."},
     {name = "Nicolas Dupont"}
@@ -28,7 +29,6 @@ keywords = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
