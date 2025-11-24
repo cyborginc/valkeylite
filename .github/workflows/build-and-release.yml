@@ -126,9 +126,28 @@ jobs:
       - name: Download wheel
         uses: actions/download-artifact@v6
         with:
-          pattern: "*${{ matrix.arch }}*.whl"
-          path: dist/
-          merge-multiple: true
+          # Download all artifacts, we'll find the right one by platform tag
+          path: dist-artifacts/
+
+      - name: Find and copy correct wheel
+        run: |
+          mkdir -p dist
+          # Find the wheel matching our exact platform
+          if [ "${{ runner.os }}" == "Linux" ]; then
+            cp dist-artifacts/*/valkeylite-*-manylinux_*_${{ matrix.arch }}.whl dist/ 2>/dev/null || true
+          elif [ "${{ runner.os }}" == "macOS" ]; then
+            cp dist-artifacts/*/valkeylite-*-macosx_*_${{ matrix.arch }}.whl dist/ 2>/dev/null || true
+          fi
+
+          # Verify we got exactly one wheel
+          wheel_count=$(ls dist/*.whl 2>/dev/null | wc -l)
+          if [ "$wheel_count" -ne 1 ]; then
+            echo "Error: Expected 1 wheel, found $wheel_count"
+            ls -la dist/ || true
+            exit 1
+          fi
+
+          echo "Found wheel: $(ls dist/*.whl)"
 
       - name: Test wheel in clean environment
         run: |
