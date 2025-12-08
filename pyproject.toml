@@ -44,7 +44,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "valkey>=6.0",
+    "valkey>=6.1.0",
 ]
 
 [project.optional-dependencies]
