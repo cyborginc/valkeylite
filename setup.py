@@ -12,7 +12,7 @@ from setuptools.command.bdist_wheel import bdist_wheel
 from setuptools.command.build_py import build_py
 
 # Valkey version to bundle
-VALKEY_VERSION = "9.0.0"
+VALKEY_VERSION = "9.0.1"
 
 
 def get_platform_tag():
