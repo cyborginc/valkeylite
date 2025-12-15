@@ -122,7 +122,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Download wheel
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           # Download all artifacts, we'll find the right one by platform tag
           path: dist-artifacts/
@@ -205,7 +205,7 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           path: dist-artifacts
 
@@ -280,7 +280,7 @@ jobs:
 
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           path: dist-artifacts
 
