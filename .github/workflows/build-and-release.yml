@@ -87,7 +87,7 @@ jobs:
           echo "name=${WHEEL_NAME}" >> $GITHUB_OUTPUT
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.wheel.outputs.name }}
           path: dist/*.whl
@@ -183,7 +183,7 @@ jobs:
         run: python -m build --sdist
 
       - name: Upload sdist
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: sdist
           path: dist/*.tar.gz

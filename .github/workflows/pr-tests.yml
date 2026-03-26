@@ -84,7 +84,7 @@ jobs:
           deactivate
 
       - name: Upload wheel artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: pr-test-wheel
           path: dist/*.whl
