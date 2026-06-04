@@ -1,12 +1,22 @@
 """Valkey client wrapper with embedded server (redislite-compatible API)."""
 
 import atexit
+import threading
 from pathlib import Path
 from typing import Any
 
 import valkey
 
 from .server import ValkeyServer
+
+# Embedded servers shared within this process, keyed by resolved data_dir.
+# Reusing one server per persistent directory avoids port churn/exhaustion and,
+# critically, prevents two processes-of-one-interpreter from writing the same
+# RDB. This is per-interpreter only: separate OS processes (e.g. gunicorn
+# workers) each get their own server — for multi-worker deployments point
+# flask_limiter at an external valkey/redis instead.
+_SHARED_SERVERS: dict[Path, ValkeyServer] = {}
+_SHARED_SERVERS_LOCK = threading.Lock()
 
 
 class Valkey(valkey.Valkey):
@@ -36,6 +46,8 @@ class Valkey(valkey.Valkey):
         dbfilename: str | Path | None = None,
         host: str = "127.0.0.1",
         port: int | None = None,
+        unix_socket_path: str | Path | None = None,
+        unix_socket_perm: str | int = "700",
         **kwargs: Any,
     ) -> None:
         """
@@ -47,6 +59,9 @@ class Valkey(valkey.Valkey):
                        If provided, data is persisted to this location.
             host: Host to bind server to (default: 127.0.0.1)
             port: Port to bind server to (default: auto-assign)
+            unix_socket_path: Optional Unix socket path.
+                              Defaults to <dbfilename>/valkey.sock when dbfilename is set.
+            unix_socket_perm: Unix socket permissions. Default: 700.
             **kwargs: Additional arguments passed to valkey.Valkey client
 
         Example:
@@ -59,21 +74,12 @@ class Valkey(valkey.Valkey):
             # Custom port
             r = Valkey(port=6380)
         """
-        # Start embedded server
-        self._server = ValkeyServer(
-            port=port,
-            host=host,
-            data_dir=Path(dbfilename) if dbfilename else None,
-            persist=bool(dbfilename),
-        )
-        self._server.start()
+        data_dir = Path(dbfilename) if dbfilename else None
+        self._shared_server_key: Path | None = None
+        self._server = self._get_server(data_dir, host, port, unix_socket_path, unix_socket_perm)
 
         # Initialize parent valkey.Valkey client
-        super().__init__(
-            host=self._server.host,
-            port=self._server.port,
-            **kwargs,
-        )
+        super().__init__(**self._server.connection_kwargs, **kwargs)
 
         # Register cleanup handler
         atexit.register(self._cleanup)
@@ -84,21 +90,71 @@ class Valkey(valkey.Valkey):
         return self._server
 
     def close(self) -> None:
-        """Close client connection and stop embedded server."""
+        """Close the client connection and any self-owned embedded server."""
         try:
             super().close()
         finally:
             if self._server:
-                self._server.stop()
+                if self._shared_server_key is None:
+                    self._server.stop()
                 self._server = None
 
     def _cleanup(self) -> None:
         """Cleanup handler called on exit."""
-        if self._server:
+        server = getattr(self, "_server", None)
+        if server:
             try:
-                self._server.terminate()
+                if getattr(self, "_shared_server_key", None) is None:
+                    server.terminate()
             except Exception:
                 pass
+
+    def _get_server(
+        self,
+        data_dir: Path | None,
+        host: str,
+        port: int | None,
+        unix_socket_path: str | Path | None,
+        unix_socket_perm: str | int,
+    ) -> ValkeyServer:
+        if data_dir is not None and port is None:
+            key = data_dir.resolve()
+            # Hold the lock across the check-and-start so concurrent threads
+            # can't both spawn a server on the same data_dir (which would race
+            # on the socket and risk dual-writer RDB corruption).
+            with _SHARED_SERVERS_LOCK:
+                server = _SHARED_SERVERS.get(key)
+                if server is None or not server.is_running():
+                    socket_path = (
+                        Path(unix_socket_path) if unix_socket_path else key / "valkey.sock"
+                    )
+                    # Keep TCP enabled (auto-assigned port) alongside the unix
+                    # socket. Sharing already prevents port churn/exhaustion, so
+                    # there's no reason to disable TCP — and doing so would break
+                    # callers that connect over host/port or read config_get()['port'].
+                    server = ValkeyServer(
+                        port=None,
+                        host=host,
+                        data_dir=data_dir,
+                        persist=True,
+                        unix_socket_path=socket_path,
+                        unix_socket_perm=unix_socket_perm,
+                    )
+                    server.start()
+                    _SHARED_SERVERS[key] = server
+                self._shared_server_key = key
+                return server
+
+        server = ValkeyServer(
+            port=port,
+            host=host,
+            data_dir=data_dir,
+            persist=bool(data_dir),
+            unix_socket_path=Path(unix_socket_path) if unix_socket_path else None,
+            unix_socket_perm=unix_socket_perm,
+        )
+        server.start()
+        return server
 
     def __enter__(self) -> "Valkey":
         """Context manager entry."""

@@ -22,6 +22,8 @@ def generate_config_file(
     port: int,
     data_dir: Path,
     config_overrides: dict[str, Any],
+    unix_socket_path: Path | None = None,
+    unix_socket_perm: str | int = "700",
 ) -> None:
     """
     Generate a Valkey configuration file.
@@ -31,6 +33,8 @@ def generate_config_file(
         port: Port number for the server
         data_dir: Directory for Valkey data files
         config_overrides: User-provided configuration overrides
+        unix_socket_path: Optional Unix socket path
+        unix_socket_perm: Unix socket permissions
 
     Raises:
         IOError: If config file cannot be written
@@ -38,12 +42,15 @@ def generate_config_file(
     # Start with defaults
     config = DEFAULT_CONFIG.copy()
 
+    # Apply user overrides
+    config.update(config_overrides)
+
     # Add runtime values
     config["port"] = str(port)
     config["dir"] = str(data_dir)
-
-    # Apply user overrides
-    config.update(config_overrides)
+    if unix_socket_path is not None:
+        config["unixsocket"] = str(unix_socket_path)
+        config["unixsocketperm"] = str(unix_socket_perm)
 
     # Generate config file content
     lines = []

@@ -286,6 +286,40 @@ from valkeylite import Valkey
 r = Valkey('/tmp/redis.db')
 ```
 
+**With a Unix socket (e.g. flask_limiter):**
+
+When you pass a persistent path, valkeylite enables a Unix socket alongside TCP
+and reuses a single embedded server for that path across calls — so the socket
+path is stable and you won't churn through ports. The socket defaults to
+`<path>/valkey.sock`, and `config_get()['unixsocket']` is populated just like
+redislite, so existing code ports over almost unchanged:
+
+```python
+# Before (redislite)
+from redislite import Redis
+_conn = Redis(DBNAME)
+_socket = _conn.config_get()['unixsocket']
+limiter = Limiter(..., storage_uri=f'redis+unix://{_socket}')
+_conn.close()
+
+# After (valkeylite) — note the storage_uri scheme stays redis+unix://
+from valkeylite import Valkey
+_conn = Valkey(DBNAME)
+_socket = _conn.config_get()['unixsocket']
+limiter = Limiter(..., storage_uri=f'redis+unix://{_socket}')
+_conn.close()   # the shared embedded server stays up for the limiter to use
+```
+
+> Keep the `redis+unix://` scheme in `storage_uri` — that's what flask_limiter's
+> `limits` backend understands. (`ValkeyServer.connection_url` reports
+> `valkey+unix://…`; that string is informational and is **not** a valid
+> flask_limiter URI.)
+>
+> **One server per process.** The embedded server is shared only within a single
+> Python interpreter. Under a multi-worker server (gunicorn/uwsgi), each worker
+> gets its own embedded instance, so rate limits would be per-worker. For
+> multi-worker production, point flask_limiter at a standalone valkey/redis.
+
 ## Development
 
 ```bash
