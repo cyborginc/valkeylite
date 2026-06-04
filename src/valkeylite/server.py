@@ -38,6 +38,8 @@ class ValkeyServer:
         data_dir: Path | None = None,
         config: dict[str, Any] | None = None,
         persist: bool = False,
+        unix_socket_path: str | Path | None = None,
+        unix_socket_perm: str | int = "700",
         **config_overrides: Any,
     ) -> None:
         """
@@ -49,6 +51,8 @@ class ValkeyServer:
             data_dir: Directory for Valkey data files. If None, uses temp directory.
             config: Dictionary of Valkey configuration options.
             persist: If True, keep data_dir after shutdown. Default: False.
+            unix_socket_path: Optional Unix socket path for local clients.
+            unix_socket_perm: Unix socket permissions. Default: 700.
             **config_overrides: Additional Valkey config options as keyword arguments.
 
         Raises:
@@ -60,6 +64,8 @@ class ValkeyServer:
         self._port: int | None = None  # Will be set in start()
         self._desired_port = port  # User-requested port
         self.persist = persist
+        self.unix_socket_path = Path(unix_socket_path) if unix_socket_path else None
+        self.unix_socket_perm = unix_socket_perm
 
         # Merge config with overrides
         self._config = config.copy() if config else {}
@@ -96,11 +102,15 @@ class ValkeyServer:
     @property
     def connection_url(self) -> str:
         """Get Redis-protocol connection URL."""
+        if self.unix_socket_path is not None:
+            return f"valkey+unix://{self.unix_socket_path}"
         return f"redis://{self.host}:{self.port}"
 
     @property
     def connection_kwargs(self) -> dict[str, Any]:
         """Get connection parameters as a dictionary for valkey-py client."""
+        if self.unix_socket_path is not None:
+            return {"unix_socket_path": str(self.unix_socket_path)}
         return {
             "host": self.host,
             "port": self.port,
@@ -136,7 +146,7 @@ class ValkeyServer:
                 "Install with: pip install valkeylite[client]"
             ) from e
 
-        return valkey.Valkey(host=self.host, port=self.port, **kwargs)
+        return valkey.Valkey(**self.connection_kwargs, **kwargs)
 
     def start(self, timeout: float = 10.0) -> None:
         """
@@ -153,8 +163,13 @@ class ValkeyServer:
         if self._process is not None:
             raise ValkeyServerAlreadyStartedError("Server is already running")
 
-        # Assign port
-        self._port = get_port_or_find_free(self._desired_port, self.host)
+        # Assign port. Port 0 disables TCP when using a Unix socket.
+        self._port = (
+            0 if self._desired_port == 0 else get_port_or_find_free(self._desired_port, self.host)
+        )
+
+        if self.unix_socket_path is not None:
+            self._prepare_unix_socket()
 
         # Generate config file
         self._temp_config_file = self.data_dir / "valkey.conf"
@@ -163,6 +178,8 @@ class ValkeyServer:
             self._port,
             self.data_dir,
             self._config,
+            self.unix_socket_path,
+            self.unix_socket_perm,
         )
 
         # Start Valkey process
@@ -242,14 +259,53 @@ class ValkeyServer:
         # Connect and exchange a real RESP PING/PONG. Use a raw socket so this
         # does not depend on the optional valkey client library.
         try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.settimeout(1.0)
-                sock.connect((self.host, self._port))
-                sock.sendall(b"*1\r\n$4\r\nPING\r\n")
-                response = sock.recv(64)
-            return response.startswith(b"+PONG")
+            self._check_connection()
+            return True
         except OSError:
             return False
+
+    def _prepare_unix_socket(self) -> None:
+        """Create the socket directory and remove stale socket files."""
+        if self.unix_socket_path is None:
+            return
+
+        self.unix_socket_path.parent.mkdir(parents=True, exist_ok=True)
+        if not self.unix_socket_path.exists():
+            return
+
+        try:
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+                sock.settimeout(1.0)
+                sock.connect(str(self.unix_socket_path))
+        except OSError:
+            self.unix_socket_path.unlink()
+            return
+
+        raise ValkeyServerStartupError(f"Unix socket already in use: {self.unix_socket_path}")
+
+    def _check_connection(self) -> None:
+        """Connect and verify the server replies +PONG to a RESP PING.
+
+        Raises OSError if the connection fails or the server does not reply
+        with +PONG. A bare connect is not enough: a server that has opened its
+        listening socket but then aborts during startup (e.g. a failed module
+        load) accepts the connection and resets it on the first command.
+        """
+        if self.unix_socket_path is not None:
+            family: int = socket.AF_UNIX
+            address: Any = str(self.unix_socket_path)
+        else:
+            family = socket.AF_INET
+            address = (self.host, self.port)
+
+        with socket.socket(family, socket.SOCK_STREAM) as sock:
+            sock.settimeout(1.0)
+            sock.connect(address)
+            sock.sendall(b"*1\r\n$4\r\nPING\r\n")
+            response = sock.recv(64)
+
+        if not response.startswith(b"+PONG"):
+            raise OSError(f"Server did not reply +PONG to PING: {response!r}")
 
     def wait_until_ready(self, timeout: float = 10.0) -> None:
         """
@@ -324,5 +380,7 @@ class ValkeyServer:
     def __repr__(self) -> str:
         """String representation of the server."""
         if self.is_running():
+            if self.unix_socket_path is not None:
+                return f"<ValkeyServer running at {self.unix_socket_path}>"
             return f"<ValkeyServer running at {self.host}:{self._port}>"
         return "<ValkeyServer not running>"

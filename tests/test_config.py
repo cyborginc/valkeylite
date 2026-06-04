@@ -60,6 +60,28 @@ def test_generate_config_with_empty_string():
         assert 'save ""' in content
 
 
+def test_generate_config_with_unix_socket():
+    """Test generating config with a Unix socket."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config_path = Path(tmpdir) / "valkey.conf"
+        data_dir = Path(tmpdir) / "data"
+        socket_path = data_dir / "valkey.sock"
+        data_dir.mkdir()
+
+        generate_config_file(
+            config_path=config_path,
+            port=0,
+            data_dir=data_dir,
+            config_overrides={},
+            unix_socket_path=socket_path,
+        )
+
+        content = config_path.read_text()
+        assert "port 0" in content
+        assert f"unixsocket {socket_path}" in content
+        assert "unixsocketperm 700" in content
+
+
 def test_validate_config_bind_zero():
     """Test that binding to 0.0.0.0 raises an error."""
     with pytest.raises(ValkeyConfigurationError, match="0.0.0.0"):
