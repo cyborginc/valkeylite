@@ -175,7 +175,14 @@ class BuildValkeyCommand(build_py):
         if shutil.which("strip"):
             self.announce("Stripping debug symbols...", level=3)
             try:
-                subprocess.run(["strip", str(binary_dst)], check=True)
+                # Use -x (discard local symbols) rather than a full strip.
+                # Valkey 9.x loads its built-in Lua engine at runtime via
+                # dlsym(RTLD_DEFAULT, "ValkeyModule_OnLoad_lua"), so that global
+                # symbol must remain in the binary's symbol table. A default
+                # strip removes it on macOS, causing the server to abort at
+                # startup ("Guru Meditation: Lua engine initialization failed").
+                # -x keeps global/exported symbols on both Linux and macOS.
+                subprocess.run(["strip", "-x", str(binary_dst)], check=True)
                 self.announce("Binary stripped successfully", level=3)
             except subprocess.CalledProcessError:
                 self.warn("Failed to strip binary (non-fatal)")

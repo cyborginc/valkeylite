@@ -266,9 +266,15 @@ class ValkeyServer:
         while time.time() - start_time < timeout:
             # Check if process died
             if self._process and self._process.poll() is not None:
+                # Valkey logs to stdout (logfile ""), so include both streams —
+                # startup crashes (e.g. a failed module load) print to stdout,
+                # not stderr.
+                stdout = self._process.stdout.read().decode() if self._process.stdout else ""
                 stderr = self._process.stderr.read().decode() if self._process.stderr else ""
                 raise ValkeyServerStartupError(
-                    f"Valkey server process died during startup. stderr: {stderr}"
+                    f"Valkey server process died during startup "
+                    f"(exit code {self._process.returncode}).\n"
+                    f"stdout:\n{stdout}\nstderr:\n{stderr}"
                 )
 
             # Try to connect
