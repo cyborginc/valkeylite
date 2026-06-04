@@ -16,13 +16,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04-arm, macos-13, macos-14]
+        os: [ubuntu-22.04, ubuntu-24.04-arm, macos-15-intel, macos-14]
         include:
           - os: ubuntu-22.04
             arch: x86_64
           - os: ubuntu-24.04-arm
             arch: aarch64
-          - os: macos-13
+          - os: macos-15-intel
             arch: x86_64
           - os: macos-14
             arch: arm64
@@ -100,14 +100,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04-arm, macos-13, macos-14]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-22.04, ubuntu-24.04-arm, macos-15-intel, macos-14]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         include:
           - os: ubuntu-22.04
             arch: x86_64
           - os: ubuntu-24.04-arm
             arch: aarch64
-          - os: macos-13
+          - os: macos-15-intel
             arch: x86_64
           - os: macos-14
             arch: arm64
@@ -260,10 +260,11 @@ jobs:
             - ✅ Python 3.11
             - ✅ Python 3.12
             - ✅ Python 3.13
+            - ✅ Python 3.14
 
             ### Wheels Included
 
-            - 4 platform-specific wheels (each works with Python 3.10-3.13)
+            - 4 platform-specific wheels (each works with Python 3.10-3.14)
             - 1 source distribution
 
             Full changelog: https://github.com/${{ github.repository }}/commits/v${{ steps.version.outputs.VERSION }}

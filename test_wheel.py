@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Comprehensive test script to verify the wheel works correctly."""
 
-import socket
 import sys
 
 from valkeylite import ValkeyServer
@@ -50,21 +49,15 @@ except Exception as e:
     print(f"   ✗ Error: {e}")
     sys.exit(1)
 
-# Test 4: Redis protocol communication (raw socket)
-print("\n4. Testing Redis protocol (raw socket)...")
+# Test 4: Redis protocol communication
+print("\n4. Testing Redis protocol PING...")
 try:
     with ValkeyServer() as server:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((server.host, server.port))
+        client = server.client()
+        response = client.ping()
 
-        # Send PING command
-        sock.send(b"*1\r\n$4\r\nPING\r\n")
-        response = sock.recv(1024)
-
-        assert b"+PONG" in response, f"Expected PONG, got: {response}"
-        print(f"   ✓ Redis protocol works: {response.decode().strip()}")
-
-        sock.close()
+        assert response is True, f"Expected PING to return True, got: {response}"
+        print("   ✓ Redis protocol works: PONG")
 except Exception as e:
     print(f"   ✗ Error: {e}")
     sys.exit(1)

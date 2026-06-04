@@ -109,11 +109,21 @@ class BuildValkeyCommand(build_py):
         except Exception:
             cpu_count = 1
 
-        # Try static linking first
+        # Build flags:
         # BUILD_TLS=no: Disable TLS to avoid OpenSSL dependency
         # MALLOC=libc: Use standard libc malloc instead of jemalloc (simpler)
-        # These flags create a self-contained static binary
-        static_make_args = [
+        #
+        # NOTE: Do NOT pass LDFLAGS=-static. As of Valkey 9.x the Lua scripting
+        # engine is a built-in "static module" that the server loads at runtime
+        # via dlsym(RTLD_DEFAULT, "ValkeyModule_OnLoad_lua") against its own
+        # binary. A fully static binary has no dynamic symbol table, so that
+        # lookup fails and the server aborts on startup with:
+        #   "Failed to load static module: lua ... undefined symbol:
+        #    ValkeyModule_OnLoad_lua" / "Guru Meditation: Lua engine
+        #    initialization failed".
+        # The default Linux build links only against glibc/libm, which are
+        # present on every manylinux_2_28 target, so this stays portable.
+        make_args = [
             "make",
             "-C",
             str(valkey_src_dir),
@@ -123,26 +133,12 @@ class BuildValkeyCommand(build_py):
             "valkey-server",
         ]
 
-        # Add LDFLAGS for static linking on Linux
-        system = platform.system().lower()
-        if system == "linux":
-            # Try full static linking on Linux
-            static_make_args.insert(3, "LDFLAGS=-static")
-            self.announce("Attempting full static linking on Linux...", level=3)
-
-        result = subprocess.run(static_make_args, capture_output=True, text=True)
+        result = subprocess.run(make_args, capture_output=True, text=True)
 
         if result.returncode != 0:
-            # If static linking failed, try without -static flag
-            if system == "linux" and "-static" in " ".join(static_make_args):
-                self.announce("Full static linking failed, trying dynamic linking...", level=3)
-                static_make_args = [arg for arg in static_make_args if arg != "LDFLAGS=-static"]
-                result = subprocess.run(static_make_args, capture_output=True, text=True)
-
-            if result.returncode != 0:
-                self.warn(f"Make stdout: {result.stdout}")
-                self.warn(f"Make stderr: {result.stderr}")
-                raise RuntimeError(f"Failed to compile Valkey: {result.stderr}")
+            self.warn(f"Make stdout: {result.stdout}")
+            self.warn(f"Make stderr: {result.stderr}")
+            raise RuntimeError(f"Failed to compile Valkey: {result.stderr}")
 
         self.announce("Valkey compilation complete", level=3)
 

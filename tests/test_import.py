@@ -1,11 +1,35 @@
 """Test basic imports and module structure."""
 
+import re
+from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    tomllib = None
+
+
+def get_project_version():
+    """Get the package version from pyproject.toml."""
+    pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+    content = pyproject.read_text()
+
+    if tomllib is not None:
+        return tomllib.loads(content)["project"]["version"]
+
+    project_match = re.search(r"(?ms)^\[project\]\s*(.*?)(?=^\[|\Z)", content)
+    assert project_match is not None
+
+    version_match = re.search(r'(?m)^version = "([^"]+)"$', project_match.group(1))
+    assert version_match is not None
+    return version_match.group(1)
+
 
 def test_import_main_module():
     """Test that the main module can be imported."""
     import valkeylite
 
-    assert valkeylite.__version__ == "9.0.0"
+    assert valkeylite.__version__ == get_project_version()
 
 
 def test_import_server_class():
