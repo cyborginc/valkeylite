@@ -80,7 +80,10 @@ class ValkeyServer:
             self._temp_data_dir = Path(tempfile.mkdtemp(prefix="valkey-"))
             self.data_dir = self._temp_data_dir
         else:
-            self.data_dir = Path(data_dir)
+            # Resolve to an absolute path: start() runs the server with
+            # cwd=data_dir, so a relative dir would be re-resolved against
+            # itself (e.g. "somename.db/somename.db/valkey.conf") and fail.
+            self.data_dir = Path(data_dir).resolve()
             self.data_dir.mkdir(parents=True, exist_ok=True)
 
         self._temp_config_file: Path | None = None
