@@ -226,7 +226,11 @@ class ValkeyServer:
         Check if the server is running and responding.
 
         Returns:
-            True if server is running and accepting connections
+            True if the server process is alive and replies +PONG to PING.
+            A bare TCP connect is not enough: a server that has opened its
+            listening socket but then aborts during startup (e.g. a failed
+            module load) accepts the connection and resets it on the first
+            command. Sending a real PING catches that case.
         """
         if self._process is None or self._port is None:
             return False
@@ -235,12 +239,15 @@ class ValkeyServer:
         if self._process.poll() is not None:
             return False
 
-        # Check if we can connect
+        # Connect and exchange a real RESP PING/PONG. Use a raw socket so this
+        # does not depend on the optional valkey client library.
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.settimeout(1.0)
                 sock.connect((self.host, self._port))
-            return True
+                sock.sendall(b"*1\r\n$4\r\nPING\r\n")
+                response = sock.recv(64)
+            return response.startswith(b"+PONG")
         except OSError:
             return False
 
