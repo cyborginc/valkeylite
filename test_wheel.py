@@ -54,17 +54,15 @@ except Exception as e:
 print("\n4. Testing Redis protocol (raw socket)...")
 try:
     with ValkeyServer() as server:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((server.host, server.port))
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.connect((server.host, server.port))
 
-        # Send PING command
-        sock.send(b"*1\r\n$4\r\nPING\r\n")
-        response = sock.recv(1024)
+            # Send PING command
+            sock.sendall(b"*1\r\n$4\r\nPING\r\n\r\n")
+            response = sock.recv(1024)
 
         assert b"+PONG" in response, f"Expected PONG, got: {response}"
         print(f"   ✓ Redis protocol works: {response.decode().strip()}")
-
-        sock.close()
 except Exception as e:
     print(f"   ✗ Error: {e}")
     sys.exit(1)
