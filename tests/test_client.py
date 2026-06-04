@@ -142,3 +142,32 @@ def test_persistent_client_real_server_socket_and_sharing(tmp_path):
         client_module._SHARED_SERVERS.clear()
         if server.is_running():
             server.stop()
+
+
+@requires_binary
+def test_relative_dbfilename_starts(monkeypatch):
+    """A relative dbfilename must start (regression: cwd=data_dir doubled the
+    relative path into 'name.db/name.db/valkey.conf' and the server died).
+
+    Uses a short cwd so the default <data_dir>/valkey.sock stays under the
+    ~104-char Unix socket path limit, which is unrelated to this regression.
+    """
+    import shutil
+    import tempfile
+
+    short_cwd = tempfile.mkdtemp(prefix="vlt", dir="/tmp")
+    monkeypatch.chdir(short_cwd)
+    client_module._SHARED_SERVERS.clear()
+
+    r = Valkey("somename.db")
+    server = r.server
+    try:
+        assert server.data_dir.is_absolute()
+        r.set("k", "v")
+        assert r.get("k") == b"v"
+        r.close()
+    finally:
+        client_module._SHARED_SERVERS.clear()
+        if server.is_running():
+            server.stop()
+        shutil.rmtree(short_cwd, ignore_errors=True)
