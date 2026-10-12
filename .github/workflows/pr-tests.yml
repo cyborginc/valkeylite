@@ -63,11 +63,6 @@ jobs:
         run: python -m build --wheel
         timeout-minutes: 10
 
-      - name: Check wheel with auditwheel
-        run: |
-          auditwheel show dist/*.whl || echo "Wheel check failed"
-        continue-on-error: true
-
       - name: Test wheel in clean environment
         run: |
           # Create fresh virtualenv
@@ -89,3 +84,27 @@ jobs:
           name: pr-test-wheel
           path: dist/*.whl
           retention-days: 7
+
+  manylinux-wheel:
+    name: manylinux_2_28 Build & Rocky Linux 8 Test (x86_64)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Build wheel in manylinux_2_28 container
+        # Fails if valkey-server needs anything newer than glibc 2.28.
+        run: |
+          docker run --rm -v "$PWD:/io" quay.io/pypa/manylinux_2_28_x86_64 \
+            /io/scripts/build_manylinux_wheel.sh
+        timeout-minutes: 20
+
+      - name: Test wheel on oldest supported glibc
+        run: |
+          docker run --rm -v "$PWD:/io" rockylinux:8 bash -euc '
+            dnf install -y -q python3.12
+            python3.12 -m venv /tmp/venv
+            /tmp/venv/bin/pip install /io/dist/*.whl
+            cd /tmp && /tmp/venv/bin/python /io/test_wheel.py
+          '

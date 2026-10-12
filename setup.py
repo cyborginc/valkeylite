@@ -32,6 +32,9 @@ def get_platform_tag():
     if system == "linux":
         # Use manylinux_2_28 (compatible with glibc 2.28+, released 2018)
         # Works on: Ubuntu 20.04+, Debian 10+, RHEL 8+, etc.
+        # This tag is only accurate when building inside a manylinux_2_28
+        # container (see scripts/build_manylinux_wheel.sh); building on a newer
+        # host links valkey-server against that host's newer glibc.
         return f"manylinux_2_28_{machine}"
     elif system == "darwin":
         # macOS version minimums
