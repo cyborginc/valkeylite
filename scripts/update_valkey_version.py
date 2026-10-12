@@ -15,11 +15,15 @@ except ImportError:
 
 
 def get_current_valkey_version() -> str:
-    """Get current Valkey version from pyproject.toml."""
-    pyproject = Path("pyproject.toml").read_text()
-    match = re.search(r'version = "([^"]+)"', pyproject)
+    """Get the bundled Valkey version from setup.py.
+
+    The package version in pyproject.toml can differ (e.g. 9.1.2.post1 for a
+    packaging-only fix), so it is not a reliable source for the Valkey version.
+    """
+    setup_py = Path("setup.py").read_text()
+    match = re.search(r'VALKEY_VERSION = "([^"]+)"', setup_py)
     if not match:
-        raise ValueError("Could not find version in pyproject.toml")
+        raise ValueError("Could not find VALKEY_VERSION in setup.py")
     return match.group(1)
 
 
@@ -35,11 +39,12 @@ def get_current_valkey_py_version() -> str | None:
 
 def parse_version(version: str) -> tuple[int, ...]:
     """Parse version string into tuple for comparison."""
-    # Remove 'v' prefix if present
-    version = version.lstrip("v")
-    # Handle version with suffixes like "8.0.0-rc1"
-    version = version.split("-")[0]
-    return tuple(map(int, version.split(".")))
+    # Keep only the leading numeric release segment, dropping a 'v' prefix and
+    # suffixes like "8.0.0-rc1" or "9.1.2.post1"
+    match = re.match(r"v?(\d+(?:\.\d+)*)", version)
+    if not match:
+        raise ValueError(f"Could not parse version: {version}")
+    return tuple(map(int, match.group(1).split(".")))
 
 
 def get_all_valkey_releases() -> list[dict]:
@@ -139,9 +144,14 @@ def should_update_valkey_py(current_min: str | None, latest: str) -> tuple[bool,
 
 
 def update_files(
-    valkey_version: str, valkey_py_min: str | None = None, dry_run: bool = False
+    valkey_version: str | None, valkey_py_min: str | None = None, dry_run: bool = False
 ) -> None:
-    """Update version in all relevant files."""
+    """Update version in all relevant files.
+
+    Version strings are only touched when there is a new Valkey version, so a
+    valkey-py-only update keeps the current package version (including any
+    .postN suffix).
+    """
     updates = []
 
     # Update pyproject.toml - project version
@@ -149,7 +159,7 @@ def update_files(
     content = pyproject_path.read_text()
 
     old_version_match = re.search(r'version = "([^"]+)"', content)
-    if old_version_match:
+    if valkey_version and old_version_match:
         old_version = old_version_match.group(1)
         new_content = content.replace(f'version = "{old_version}"', f'version = "{valkey_version}"')
 
@@ -176,7 +186,7 @@ def update_files(
     setup_content = setup_path.read_text()
 
     old_setup_match = re.search(r'VALKEY_VERSION = "([^"]+)"', setup_content)
-    if old_setup_match:
+    if valkey_version and old_setup_match:
         old_setup_version = old_setup_match.group(1)
         new_setup_content = setup_content.replace(
             f'VALKEY_VERSION = "{old_setup_version}"',
@@ -193,7 +203,7 @@ def update_files(
     init_content = init_path.read_text()
 
     old_init_match = re.search(r'__version__ = "([^"]+)"', init_content)
-    if old_init_match:
+    if valkey_version and old_init_match:
         old_init_version = old_init_match.group(1)
         new_init_content = init_content.replace(
             f'__version__ = "{old_init_version}"', f'__version__ = "{valkey_version}"'
@@ -279,7 +289,7 @@ def main():
     if target_valkey or new_valkey_py_min:
         print("\n" + "=" * 60)
         update_version = target_valkey or current_valkey
-        has_updates = update_files(update_version, new_valkey_py_min, args.dry_run)
+        has_updates = update_files(target_valkey, new_valkey_py_min, args.dry_run)
 
         # Write GitHub Actions outputs
         if args.github_output and has_updates:
