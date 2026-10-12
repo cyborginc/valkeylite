@@ -108,3 +108,38 @@ jobs:
             /tmp/venv/bin/pip install /io/dist/*.whl
             cd /tmp && /tmp/venv/bin/python /io/test_wheel.py
           '
+
+  macos-wheel:
+    name: macOS Build & Test (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15-intel
+            arch: x86_64
+          - os: macos-14
+            arch: arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Build wheel
+        # setup.py fails if valkey-server needs a newer macOS than the wheel tag.
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --wheel
+        timeout-minutes: 15
+
+      - name: Test wheel in clean environment
+        run: |
+          python -m venv test-env
+          source test-env/bin/activate
+          pip install dist/*.whl
+          python test_wheel.py

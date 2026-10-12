@@ -1,5 +1,6 @@
 """Custom build script to download and compile Valkey."""
 
+import os
 import platform
 import shutil
 import subprocess
@@ -13,6 +14,19 @@ from setuptools.command.build_py import build_py
 
 # Valkey version to bundle
 VALKEY_VERSION = "9.1.2"
+
+
+def get_macos_deployment_target():
+    """Get the minimum macOS version the bundled binary is built for.
+
+    This is both passed to the compiler (MACOSX_DEPLOYMENT_TARGET) and used in
+    the wheel's platform tag, so the tag always matches what the binary needs.
+    Without it, clang targets the build host's macOS version and the wheel
+    installs on older macOS releases where valkey-server can't run.
+    """
+    if platform.machine().lower() in ("aarch64", "arm64"):
+        return "11.0"  # macOS 11 Big Sur, the first release on Apple Silicon
+    return "10.13"  # macOS 10.13 High Sierra for x86_64
 
 
 def get_platform_tag():
@@ -37,11 +51,8 @@ def get_platform_tag():
         # host links valkey-server against that host's newer glibc.
         return f"manylinux_2_28_{machine}"
     elif system == "darwin":
-        # macOS version minimums
-        if machine == "arm64":
-            return f"macosx_11_0_{machine}"  # macOS 11 Big Sur minimum for ARM64
-        else:
-            return f"macosx_10_13_{machine}"  # macOS 10.13 High Sierra minimum for x86_64
+        target = get_macos_deployment_target().replace(".", "_")
+        return f"macosx_{target}_{machine}"
     else:
         raise RuntimeError(f"Unsupported platform: {system}")
 
@@ -136,12 +147,26 @@ class BuildValkeyCommand(build_py):
             "valkey-server",
         ]
 
-        result = subprocess.run(make_args, capture_output=True, text=True)
+        env = os.environ.copy()
+        if platform.system() == "Darwin":
+            env["MACOSX_DEPLOYMENT_TARGET"] = get_macos_deployment_target()
+
+        result = subprocess.run(make_args, capture_output=True, text=True, env=env)
 
         if result.returncode != 0:
             self.warn(f"Make stdout: {result.stdout}")
             self.warn(f"Make stderr: {result.stderr}")
             raise RuntimeError(f"Failed to compile Valkey: {result.stderr}")
+
+        # clang only warns when code calls an API newer than the deployment
+        # target; the binary would then crash at launch on older macOS.
+        output = result.stdout + result.stderr
+        if "-Wunguarded-availability" in output:
+            unguarded = [line for line in output.splitlines() if "-Wunguarded-availability" in line]
+            raise RuntimeError(
+                f"Valkey uses APIs newer than macOS {get_macos_deployment_target()}:\n"
+                + "\n".join(unguarded)
+            )
 
         self.announce("Valkey compilation complete", level=3)
 
@@ -200,6 +225,44 @@ class BuildValkeyCommand(build_py):
         # Check if binary is statically linked (Linux only)
         if system == "linux":
             self._check_binary_linking(binary_dst)
+        else:
+            self._check_macos_min_version(binary_dst)
+
+    def _check_macos_min_version(self, binary_path):
+        """Fail if the binary requires a newer macOS than the wheel tag claims."""
+        result = subprocess.run(
+            ["otool", "-l", str(binary_path)], capture_output=True, text=True, check=True
+        )
+
+        # Deployment targets >= 10.14 use LC_BUILD_VERSION ("minos"), older
+        # ones use LC_VERSION_MIN_MACOSX ("version").
+        minos = None
+        load_command = None
+        for line in result.stdout.splitlines():
+            fields = line.split()
+            if len(fields) < 2:
+                continue
+            if fields[0] == "cmd":
+                load_command = fields[1]
+            elif (load_command, fields[0]) in (
+                ("LC_BUILD_VERSION", "minos"),
+                ("LC_VERSION_MIN_MACOSX", "version"),
+            ):
+                minos = fields[1]
+
+        target = get_macos_deployment_target()
+        if minos is None:
+            raise RuntimeError(f"Could not determine minimum macOS version of {binary_path}")
+
+        def as_tuple(version):
+            return tuple(int(part) for part in version.split("."))
+
+        if as_tuple(minos) > as_tuple(target):
+            raise RuntimeError(
+                f"{binary_path} requires macOS {minos}, newer than the wheel's "
+                f"macOS {target} tag. If build/ holds objects from an older build, delete it."
+            )
+        self.announce(f"Binary requires macOS {minos} (wheel tag: {target})", level=3)
 
     def _check_binary_linking(self, binary_path):
         """Check if the binary is statically or dynamically linked."""
