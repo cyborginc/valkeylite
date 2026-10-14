@@ -5,6 +5,7 @@ import argparse
 import os
 import re
 import sys
+import uuid
 from pathlib import Path
 
 try:
@@ -288,15 +289,29 @@ def main():
     # Perform updates
     if target_valkey or new_valkey_py_min:
         print("\n" + "=" * 60)
-        update_version = target_valkey or current_valkey
         has_updates = update_files(target_valkey, new_valkey_py_min, args.dry_run)
+
+        # Name the PR after what actually changed, so a valkey-py-only bump isn't
+        # mislabelled as an update to the Valkey version we already ship
+        if target_valkey and new_valkey_py_min:
+            pr_title = f"Update to Valkey {target_valkey} and valkey-py >={new_valkey_py_min}"
+            branch = f"auto-update-valkey-{target_valkey}-valkey-py-{new_valkey_py_min}"
+        elif target_valkey:
+            pr_title = f"Update to Valkey {target_valkey}"
+            branch = f"auto-update-valkey-{target_valkey}"
+        else:
+            pr_title = f"Update valkey-py requirement to >={new_valkey_py_min}"
+            branch = f"auto-update-valkey-py-{new_valkey_py_min}"
 
         # Write GitHub Actions outputs
         if args.github_output and has_updates:
             with open(args.github_output, "a") as f:
                 f.write("update_needed=true\n")
-                f.write(f"valkey_version={update_version}\n")
+                f.write(f"pr_title={pr_title}\n")
+                f.write(f"branch={branch}\n")
                 f.write(f"current_version={current_valkey}\n")
+                if target_valkey:
+                    f.write(f"valkey_version={target_valkey}\n")
                 if new_valkey_py_min:
                     f.write(f"valkey_py_version={new_valkey_py_min}\n")
 
@@ -322,19 +337,21 @@ def main():
                         f"\nUpdates valkey-py requirement to **>={new_valkey_py_min}**\n"
                     )
 
-                pr_body_lines.append("\n### Valkey Release Notes\n")
                 if target_valkey:
+                    pr_body_lines.append("\n### Valkey Release Notes\n")
                     pr_body_lines.append(
                         f"https://github.com/valkey-io/valkey/releases/tag/{target_valkey}\n"
                     )
 
-                pr_body_lines.append("\n### valkey-py Release Notes\n")
-                pr_body_lines.append("https://github.com/valkey-io/valkey-py/releases\n")
+                if new_valkey_py_min:
+                    pr_body_lines.append("\n### valkey-py Release Notes\n")
+                    pr_body_lines.append("https://github.com/valkey-io/valkey-py/releases\n")
 
                 pr_body = "".join(pr_body_lines)
-                # Escape newlines for GitHub Actions
-                pr_body_escaped = pr_body.replace("\n", "%0A")
-                f.write(f"pr_body={pr_body_escaped}\n")
+                # Multiline outputs need the heredoc-style delimiter syntax;
+                # %0A escaping is not decoded for $GITHUB_OUTPUT
+                delimiter = f"EOF_{uuid.uuid4().hex}"
+                f.write(f"pr_body<<{delimiter}\n{pr_body}{delimiter}\n")
 
             print(f"\n✓ Wrote outputs to {args.github_output}")
 
