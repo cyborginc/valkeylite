@@ -37,9 +37,9 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: update to Valkey ${{ steps.check.outputs.valkey_version }}"
-          branch: auto-update-valkey-${{ steps.check.outputs.valkey_version }}
-          title: "Update to Valkey ${{ steps.check.outputs.valkey_version }}"
+          commit-message: "chore: ${{ steps.check.outputs.pr_title }}"
+          branch: ${{ steps.check.outputs.branch }}
+          title: ${{ steps.check.outputs.pr_title }}
           body: ${{ steps.check.outputs.pr_body }}
           labels: |
             dependencies
