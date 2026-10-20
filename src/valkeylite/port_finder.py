@@ -45,6 +45,35 @@ def is_port_available(host: str, port: int) -> bool:
             return False
 
 
+def is_port_bindable(host: str, port: int) -> bool:
+    """
+    Check if valkey-server could bind to a port on the specified host.
+
+    valkey-server binds with SO_REUSEADDR, so a port is still usable while
+    connections from a server that just stopped on it linger in TIME_WAIT.
+    is_port_available() rejects such a port; this check does not.
+
+    On macOS/BSD, SO_REUSEADDR also lets a specific address bind over a
+    wildcard listener, so the wildcard address is checked too. Otherwise a port
+    published on 0.0.0.0 (e.g. by Docker) would look free.
+
+    Args:
+        host: Host address to check
+        port: Port number to check
+
+    Returns:
+        True if port can be bound, False otherwise
+    """
+    for address in dict.fromkeys((host, "0.0.0.0")):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                sock.bind((address, port))
+            except OSError:
+                return False
+    return True
+
+
 def get_port_or_find_free(port: int | None, host: str = "127.0.0.1") -> int:
     """
     Return the specified port if available, otherwise find a free one.
@@ -62,7 +91,7 @@ def get_port_or_find_free(port: int | None, host: str = "127.0.0.1") -> int:
     if port is None:
         return find_free_port(host)
 
-    if is_port_available(host, port):
+    if is_port_bindable(host, port):
         return port
 
     raise OSError(f"Port {port} is already in use on {host}")
