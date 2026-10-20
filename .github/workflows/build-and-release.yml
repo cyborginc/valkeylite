@@ -88,7 +88,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04-arm, macos-15-intel, macos-14]
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
         include:
           - os: ubuntu-22.04
             arch: x86_64
@@ -283,15 +283,15 @@ jobs:
 
             ### Python Version Support
 
-            - ✅ Python 3.10
             - ✅ Python 3.11
             - ✅ Python 3.12
             - ✅ Python 3.13
             - ✅ Python 3.14
+            - ✅ Python 3.15
 
             ### Wheels Included
 
-            - 4 platform-specific wheels (each works with Python 3.10-3.14)
+            - 4 platform-specific wheels (each works with Python 3.11-3.15)
             - 1 source distribution
 
             Full changelog: https://github.com/${{ github.repository }}/commits/v${{ steps.version.outputs.VERSION }}
