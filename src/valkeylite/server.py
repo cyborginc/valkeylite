@@ -86,6 +86,12 @@ class ValkeyServer:
             self.data_dir = Path(data_dir).resolve()
             self.data_dir.mkdir(parents=True, exist_ok=True)
 
+        # Valkey's log file. The server's stdout/stderr are appended here too,
+        # so with the default logfile "" (log to stdout) this is the log.
+        # A relative logfile is resolved against data_dir, the server's cwd.
+        self.log_path = self.data_dir / (self._config.get("logfile") or "valkey.log")
+        self._log_offset = 0
+
         self._temp_config_file: Path | None = None
         self._process: subprocess.Popen | None = None
         self._binary_path = get_binary_path()
@@ -185,14 +191,18 @@ class ValkeyServer:
             self.unix_socket_perm,
         )
 
-        # Start Valkey process
+        # Start Valkey process. Output goes to the log file rather than a pipe:
+        # nothing reads a pipe while the server runs, so once it fills
+        # (~64 KiB) the server blocks on its next log write and hangs.
         try:
-            self._process = subprocess.Popen(
-                [str(self._binary_path), str(self._temp_config_file)],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                cwd=str(self.data_dir),
-            )
+            with open(self.log_path, "ab") as log_file:
+                self._log_offset = log_file.tell()
+                self._process = subprocess.Popen(
+                    [str(self._binary_path), str(self._temp_config_file)],
+                    stdout=log_file,
+                    stderr=subprocess.STDOUT,
+                    cwd=str(self.data_dir),
+                )
         except Exception as e:
             raise ValkeyServerStartupError(f"Failed to start Valkey server: {e}") from e
 
@@ -325,15 +335,12 @@ class ValkeyServer:
         while time.time() - start_time < timeout:
             # Check if process died
             if self._process and self._process.poll() is not None:
-                # Valkey logs to stdout (logfile ""), so include both streams —
-                # startup crashes (e.g. a failed module load) print to stdout,
-                # not stderr.
-                stdout = self._process.stdout.read().decode() if self._process.stdout else ""
-                stderr = self._process.stderr.read().decode() if self._process.stderr else ""
+                # Startup crashes (e.g. a failed module load) are logged, so
+                # include this run's part of the log in the error.
                 raise ValkeyServerStartupError(
                     f"Valkey server process died during startup "
                     f"(exit code {self._process.returncode}).\n"
-                    f"stdout:\n{stdout}\nstderr:\n{stderr}"
+                    f"log ({self.log_path}):\n{self._read_log()}"
                 )
 
             # Try to connect
@@ -343,6 +350,15 @@ class ValkeyServer:
             time.sleep(0.1)
 
         raise ValkeyServerTimeoutError(f"Server did not become ready within {timeout} seconds")
+
+    def _read_log(self) -> str:
+        """Return what the server has logged since the last start()."""
+        try:
+            with open(self.log_path, "rb") as log_file:
+                log_file.seek(self._log_offset)
+                return log_file.read().decode(errors="replace")
+        except OSError:
+            return ""
 
     def _cleanup(self) -> None:
         """Clean up resources (called automatically at exit)."""

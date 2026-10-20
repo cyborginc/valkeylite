@@ -80,6 +80,7 @@ def main() -> int:
         print(f"  Port: {server.port}")
         print(f"  Connection URL: {server.connection_url}")
         print(f"  Data directory: {server.data_dir}")
+        print(f"  Log file: {server.log_path}")
         print("\nPress Ctrl+C to stop the server...")
 
         # Keep running until interrupted
