@@ -228,7 +228,7 @@ jobs:
         id: version
         run: |
           echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-          # Differs from the package version for post-releases (e.g. 9.1.2.post1)
+          # Differs from the package version for post-releases (e.g. 9.1.2.post2)
           echo "VALKEY_VERSION=$(sed -n 's/^VALKEY_VERSION = "\(.*\)"$/\1/p' setup.py)" >> $GITHUB_OUTPUT
 
       - name: Download all artifacts

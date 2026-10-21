@@ -75,6 +75,12 @@ jobs:
           # Run integration test
           python test_wheel.py
 
+          # Run the full test suite against the installed wheel. Unlike the
+          # editable install above, it has the valkey-server binary, so the
+          # real-server tests run instead of being skipped.
+          pip install pytest
+          pytest tests -rs
+
           # Cleanup
           deactivate
 
@@ -143,3 +149,8 @@ jobs:
           source test-env/bin/activate
           pip install dist/*.whl
           python test_wheel.py
+
+          # Full test suite against the installed wheel (see quick-test). The
+          # short basetemp keeps Unix socket paths under macOS's 104-char limit.
+          pip install pytest
+          pytest tests -rs --basetemp=/tmp/valkeylite-pytest

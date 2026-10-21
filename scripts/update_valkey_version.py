@@ -18,7 +18,7 @@ except ImportError:
 def get_current_valkey_version() -> str:
     """Get the bundled Valkey version from setup.py.
 
-    The package version in pyproject.toml can differ (e.g. 9.1.2.post1 for a
+    The package version in pyproject.toml can differ (e.g. 9.1.2.post2 for a
     packaging-only fix), so it is not a reliable source for the Valkey version.
     """
     setup_py = Path("setup.py").read_text()
@@ -41,7 +41,7 @@ def get_current_valkey_py_version() -> str | None:
 def parse_version(version: str) -> tuple[int, ...]:
     """Parse version string into tuple for comparison."""
     # Keep only the leading numeric release segment, dropping a 'v' prefix and
-    # suffixes like "8.0.0-rc1" or "9.1.2.post1"
+    # suffixes like "8.0.0-rc1" or "9.1.2.post2"
     match = re.match(r"v?(\d+(?:\.\d+)*)", version)
     if not match:
         raise ValueError(f"Could not parse version: {version}")

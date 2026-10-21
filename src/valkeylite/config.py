@@ -12,7 +12,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "daemonize": "no",
     "save": "",  # Disable RDB snapshots
     "appendonly": "no",  # Disable AOF
-    "logfile": "",  # Log to stdout
+    "logfile": "",  # Log to stdout, which ValkeyServer sends to <data_dir>/valkey.log
     "loglevel": "notice",
 }
 
