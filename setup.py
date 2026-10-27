@@ -13,7 +13,7 @@ from setuptools.command.bdist_wheel import bdist_wheel
 from setuptools.command.build_py import build_py
 
 # Valkey version to bundle
-VALKEY_VERSION = "9.1.2"
+VALKEY_VERSION = "9.1.3"
 
 
 def get_macos_deployment_target():
