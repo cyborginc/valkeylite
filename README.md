@@ -16,7 +16,7 @@ It's like [`redislite`](https://github.com/yahoo/redislite) but with Valkey!
 - 🚀 **Drop-in replacement** for redislite with Valkey
 - 🔧 **Two APIs** - Simple client wrapper OR explicit server control
 - 🧪 **Perfect for testing** - Isolated instances with auto-cleanup
-- ⚡ **Latest Valkey** - Currently bundles Valkey 9.0.0
+- ⚡ **Latest Valkey** - Currently bundles Valkey 9.1
 - 🎯 **Pytest fixtures** - Built-in pytest integration
 - 🔓 **Open source** - MIT license, bundles BSD-3-Clause Valkey
 
