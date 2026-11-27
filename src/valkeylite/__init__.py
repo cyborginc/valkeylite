@@ -17,7 +17,7 @@ from .exceptions import (
 )
 from .server import ValkeyServer
 
-__version__ = "9.2.0"
+__version__ = "9.2.1"
 
 # Primary exports
 __all__ = [
